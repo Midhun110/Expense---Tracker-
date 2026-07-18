@@ -1,0 +1,140 @@
+/* CSS Design Tokens for Carpentry Project Management - High Readability */
+:root {
+    /* Color Palette - Premium, natural warm wood accents and high-contrast text */
+    --bg-primary: #F4F6F8;
+    --bg-card: #FFFFFF;
+    --text-primary: #111111;       /* Deep high-contrast black for readability */
+    --text-secondary: #555555;     /* Dark gray for secondary details */
+    --color-primary: #D35400;      /* Warm wood amber/terracotta */
+    --color-primary-hover: #A04000;
+    --color-primary-light: #FBEEE6;
+    
+    /* Semantic Colors for Statuses (High contrast) */
+    --color-running-bg: #E8F8F5;
+    --color-running-text: #117864;
+    --color-completed-bg: #EAECEE;
+    --color-completed-text: #5D6D7E;
+    --color-danger-bg: #FDEDEC;
+    --color-danger-text: #C0392B;
+    
+    /* Layout & Styling Values */
+    --border-color: #E2E8F0;
+    --border-color-focus: #D35400;
+    --border-radius: 16px;
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+    
+    /* Typography - Standard is 18px to ensure readability */
+    --font-base: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Global Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-base);
+    -webkit-tap-highlight-color: transparent; /* Remove mobile touch blue highlight */
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 20px; /* Large default text size */
+    line-height: 1.5;
+    padding-bottom: 100px; /* Safe area for bottom floating buttons */
+}
+
+/* App Header styling */
+.app-header {
+    background-color: var(--bg-card);
+    border-bottom: 2px solid var(--border-color);
+    padding: 20px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.app-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-logo {
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+}
+
+.app-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Content Container */
+.container {
+    width: 100%;
+    max-width: 600px; /* Perfect reading and tap width for mobile and desktop */
+    margin: 0 auto;
+    padding: 24px 16px;
+}
+
+/* Typography elements */
+h1 {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+p {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+/* Helpers */
+.text-center { text-align: center; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mb-4 { margin-bottom: 16px; }
+.mb-6 { margin-bottom: 24px; }
+
+/* Status Badges */
+.badge {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 30px;
+    text-transform: capitalize;
+}
+
+.badge-running {
+    background-color: var(--color-running-bg);
+    color: var(--color-running-text);
+    border: 2px solid rgba(17, 120, 100, 0.2);
+}
+
+.badge-completed {
+    background-color: var(--color-completed-bg);
+    color: var(--color-completed-text);
+    border: 2px solid rgba(93, 109, 126, 0.2);
+}
+
+/* Scroll lock when modal is open */
+.scroll-locked {
+    overflow: hidden;
+}

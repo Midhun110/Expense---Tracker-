@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jp</title>
+    <!-- Google Fonts: Outfit for clean, geometric, friendly typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/src/styles/main.css">
+    <link rel="stylesheet" href="/src/styles/components.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app"></div>
+
+    <!-- Global Floating Action Button -->
+    <button id="global-fab" class="fab-btn" aria-label="Quick Actions">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+    
+    <!-- Global Bottom Sheet Overlay -->
+    <div id="bottom-sheet-backdrop" class="sheet-backdrop"></div>
+    <div id="bottom-sheet" class="bottom-sheet">
+        <div class="sheet-drag-handle"></div>
+        <h2 class="sheet-title" id="sheet-title-text" style="font-size: 24px; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--text-primary); margin-top: 0;">Quick Actions</h2>
+        
+        <!-- Main Quick Actions Options -->
+        <div id="sheet-content-main" style="display: flex; flex-direction: column; gap: 16px;">
+            <button class="btn btn-secondary sheet-action-btn" id="btn-action-new-project" style="height: 64px; justify-content: flex-start; padding-left: 24px; font-size: 20px; font-weight: 600; border: 2px solid var(--border-color); background-color: var(--bg-card); color: var(--text-primary);">
+                <span style="font-size: 24px; margin-right: 16px;">📁</span> New Project
+            </button>
+            <button class="btn btn-secondary sheet-action-btn" id="btn-action-add-expense" style="height: 64px; justify-content: flex-start; padding-left: 24px; font-size: 20px; font-weight: 600; border: 2px solid var(--border-color); background-color: var(--bg-card); color: var(--text-primary);">
+                <span style="font-size: 24px; margin-right: 16px;">💸</span> Add Expense
+            </button>
+            <button class="btn btn-secondary sheet-action-btn" id="btn-action-receive-payment" style="height: 64px; justify-content: flex-start; padding-left: 24px; font-size: 20px; font-weight: 600; border: 2px solid var(--border-color); background-color: var(--bg-card); color: var(--text-primary);">
+                <span style="font-size: 24px; margin-right: 16px;">💰</span> Receive Payment
+            </button>
+        </div>
+        
+        <!-- Project Selector (Hidden by default) -->
+        <div id="sheet-content-project-selector" style="display: none; flex-direction: column; gap: 16px;">
+            <div style="font-size: 18px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px;" id="project-selector-title">Select Project</div>
+            <div id="project-selector-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 240px; overflow-y: auto;">
+                <!-- Dynamically populated -->
+            </div>
+            <button class="btn btn-secondary" id="btn-action-selector-back" style="height: 60px; font-size: 18px; font-weight: 600;">
+                Back
+            </button>
+        </div>
+        
+        <button class="btn btn-secondary" id="btn-close-sheet" style="height: 60px; margin-top: 20px; font-size: 18px; font-weight: 600; border: 2px solid var(--border-color); width: 100%;">Cancel</button>
+    </div>
+
+    <!-- Application Script -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
