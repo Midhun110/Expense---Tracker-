@@ -649,3 +649,268 @@
 .sheet-action-btn:hover {
     background-color: var(--bg-primary);
 }
+
+/* --- Product Table & Quantity Selector Styles --- */
+.product-table-container {
+    margin-bottom: 24px;
+}
+
+.product-table-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.product-row {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+}
+
+.product-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid var(--border-color);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+}
+
+.product-no {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.btn-delete-item {
+    background: none;
+    border: none;
+    color: var(--color-danger-text);
+    font-size: 16px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: var(--color-danger-bg);
+}
+
+.btn-delete-item:active {
+    background-color: #FADBD8;
+}
+
+.product-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.field-item-name {
+    grid-column: 1 / -1;
+}
+
+.compact-label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+}
+
+.product-input {
+    width: 100%;
+    height: 54px;
+    padding: 10px 14px;
+    font-size: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.product-input:focus {
+    border-color: var(--border-color-focus);
+}
+
+/* Qty Controls */
+.qty-control {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 54px;
+    background-color: #FFFFFF;
+}
+
+.qty-btn {
+    width: 50px;
+    height: 100%;
+    border: none;
+    background-color: #F1F5F9;
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.qty-btn:active {
+    background-color: #E2E8F0;
+}
+
+.qty-input {
+    flex: 1;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    background-color: transparent;
+    color: var(--text-primary);
+    width: 100%;
+    outline: none;
+}
+
+/* Total Amount Box */
+.total-amount-box {
+    background-color: var(--bg-card);
+    border: 3px solid var(--border-color-focus);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-soft);
+}
+
+.total-amount-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.total-amount-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.btn-add-item {
+    border: 2.5px dashed var(--color-primary);
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    height: 60px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: var(--border-radius);
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.btn-add-item:active {
+    background-color: #F5CBA7;
+}
+
+/* Desktop/Tablet Media Queries for Product Table Layout */
+@media (min-width: 600px) {
+    .product-row {
+        padding: 12px;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .product-row-header {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .product-fields-grid {
+        display: grid;
+        grid-template-columns: 3fr 1.8fr 1.5fr 2fr;
+        gap: 12px;
+        flex-grow: 1;
+        align-items: center;
+    }
+    
+    .field-item-name {
+        grid-column: span 1;
+    }
+    
+    .compact-label {
+        display: none; /* Header row handles labels on desktop */
+    }
+    
+    .btn-delete-item {
+        padding: 10px;
+        border-radius: 10px;
+        background-color: transparent;
+    }
+    
+    .btn-delete-item span {
+        display: none; /* Hide delete text, just show icon */
+    }
+    
+    .btn-delete-item:hover {
+        background-color: var(--color-danger-bg);
+    }
+    
+    .desktop-table-header {
+        display: grid;
+        grid-template-columns: 40px 3fr 1.8fr 1.5fr 2fr 52px;
+        gap: 12px;
+        padding: 0 12px 10px 12px;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 12px;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text-secondary);
+    }
+}
+
+@media (max-width: 599px) {
+    .desktop-table-header {
+        display: none;
+    }
+    
+    .product-fields-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .field-qty {
+        grid-column: span 2;
+    }
+    
+    .field-size, .field-price {
+        grid-column: span 1;
+    }
+}
+

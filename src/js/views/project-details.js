@@ -245,15 +245,50 @@ export const ProjectDetailsView = {
                     <h1 style="margin-bottom: 8px; word-break: break-word;">${escapeHtml(project.name)}</h1>
                 </div>
                 
-                <!-- Project Basic Info Panel -->
+                <!-- Project Customer Info Panel -->
                 <div style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">Client</span>
                         <span style="font-size: 20px; font-weight: 700; color: var(--text-primary);">${project.client ? escapeHtml(project.client) : '<i>No name</i>'}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">Start Date</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">Phone</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--text-primary);">${project.phone ? escapeHtml(project.phone) : '<i>Not set</i>'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; gap: 16px;">
+                        <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500; white-space: nowrap;">Site Address</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--text-primary); text-align: right; word-break: break-word;">${project.siteAddress ? escapeHtml(project.siteAddress) : '<i>Not set</i>'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">Order Date</span>
                         <span style="font-size: 20px; font-weight: 600; color: var(--text-primary);">${formatDate(project.startDate)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">Expected Completion</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--text-primary);">${project.expectedCompletionDate ? formatDate(project.expectedCompletionDate) : '<i>Not set</i>'}</span>
+                    </div>
+                </div>
+
+                <!-- Product Table Card -->
+                <div style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow-soft);">
+                    <h2 class="mb-4" style="margin-top: 0; font-size: 22px;">Product Details</h2>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${(project.products || []).map(prod => `
+                            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px; font-weight: 700; color: var(--text-primary); word-break: break-word;">#${prod.no}. ${escapeHtml(prod.itemName)}</span>
+                                    <span style="font-size: 18px; font-weight: 700; color: var(--color-primary);">${formatPrice(prod.price * prod.quantity)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--text-secondary); font-weight: 500;">
+                                    <span>Size: <strong>${escapeHtml(prod.size || 'N/A')}</strong></span>
+                                    <span>Qty: <strong>${prod.quantity}</strong> × ${formatPrice(prod.price)}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-weight: 700; font-size: 18px; color: var(--text-primary);">
+                        <span>Total Items: ${(project.products || []).reduce((sum, p) => sum + p.quantity, 0)}</span>
+                        <span style="font-size: 20px; color: var(--color-primary);">Total: ${formatPrice(project.amount)}</span>
                     </div>
                 </div>
                 
@@ -352,6 +387,16 @@ export const ProjectDetailsView = {
                 
                 <!-- Action Buttons Stacked vertically -->
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 36px; border-top: 2px solid var(--border-color); padding-top: 24px;">
+                    <!-- Print PDF Button -->
+                    <button class="btn btn-secondary" id="btn-print-pdf" style="border: 2px solid var(--color-primary); color: var(--color-primary); background-color: var(--color-primary-light); height: 64px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke: var(--color-primary);">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        Print / Generate PDF
+                    </button>
+
                     <a href="#/project/${project.id}/edit" class="btn btn-primary" id="btn-edit-details">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -447,5 +492,231 @@ export const ProjectDetailsView = {
             deleteProject(project.id);
             navigate('/');
         });
+
+        // Print PDF function
+        const printBtn = document.getElementById('btn-print-pdf');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    alert('Please allow popups to generate the PDF quotation.');
+                    return;
+                }
+                
+                // Build products rows HTML
+                const productsHtml = (project.products || []).map(prod => `
+                    <tr>
+                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px;">${prod.no}</td>
+                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; word-break: break-word;">${escapeHtml(prod.itemName)}</td>
+                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; text-align: center;">${prod.quantity}</td>
+                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px;">${escapeHtml(prod.size || 'N/A')}</td>
+                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; text-align: right; font-weight: 600;">₹${Number(prod.price).toLocaleString('en-IN')}</td>
+                    </tr>
+                `).join('');
+
+                const addressHtml = project.siteAddress 
+                    ? `<p style="font-size: 15px; margin: 6px 0; color: #333;"><strong>Site Address:</strong> ${escapeHtml(project.siteAddress)}</p>` 
+                    : '';
+                const completionHtml = project.expectedCompletionDate 
+                    ? `<p style="font-size: 15px; margin: 6px 0; color: #333;"><strong>Expected Completion:</strong> ${formatDate(project.expectedCompletionDate)}</p>` 
+                    : '';
+
+                printWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quotation - ${escapeHtml(project.client)}</title>
+    <style>
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            color: #111;
+            margin: 40px;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #D35400;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-details h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: #D35400;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.5px;
+        }
+        .company-details p {
+            font-size: 14px;
+            color: #555;
+            margin: 2px 0;
+        }
+        .quotation-title {
+            text-align: right;
+        }
+        .quotation-title h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111;
+            margin: 0 0 10px 0;
+            letter-spacing: 1px;
+        }
+        .quotation-title p {
+            font-size: 14px;
+            color: #555;
+            margin: 2px 0;
+        }
+        .details-section {
+            margin-bottom: 40px;
+        }
+        .customer-details {
+            border: 1.5px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #FAFAFA;
+        }
+        .customer-details h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #D35400;
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1.5px solid #FBEEE6;
+            padding-bottom: 6px;
+        }
+        .customer-details p {
+            font-size: 15px;
+            margin: 6px 0;
+            color: #333;
+        }
+        .table-container {
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th {
+            background-color: #FBEEE6;
+            color: #D35400;
+            font-weight: 700;
+            border-bottom: 2px solid #D35400;
+            padding: 12px 10px;
+            font-size: 14px;
+        }
+        tr:nth-child(even) td {
+            background-color: #FDFEFE;
+        }
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .total-box {
+            background-color: #FBEEE6;
+            border: 1.5px solid #D35400;
+            border-radius: 8px;
+            padding: 15px 25px;
+            text-align: right;
+            min-width: 250px;
+        }
+        .total-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+        .total-amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: #D35400;
+            margin-top: 4px;
+        }
+        .footer {
+            margin-top: 60px;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+        @media print {
+            body {
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-details">
+            <h1>NIKHIL WOOD INDUSTRY</h1>
+            <p>Premium Carpentry &amp; Custom Furniture Work</p>
+            <p>Phone: +91 98765 43210 | Email: jayaprakashjp404@gmail.com</p>
+            <p>Workshop: Timber Market Area, Site Road</p>
+        </div>
+        <div class="quotation-title">
+            <h2>QUOTATION</h2>
+            <p><strong>Date:</strong> ${formatDate(project.startDate)}</p>
+            <p><strong>Quotation No:</strong> QT-${project.id.replace('proj-', '').toUpperCase()}</p>
+        </div>
+    </div>
+    
+    <div class="details-section">
+        <div class="customer-details">
+            <h3>Quotation For</h3>
+            <p><strong>Name:</strong> ${escapeHtml(project.client)}</p>
+            <p><strong>Phone:</strong> ${escapeHtml(project.phone || 'N/A')}</p>
+            ${addressHtml}
+            ${completionHtml}
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">No.</th>
+                    <th style="width: 47%;">Item Description</th>
+                    <th style="text-align: center; width: 15%;">Quantity</th>
+                    <th style="width: 15%;">Size</th>
+                    <th style="text-align: right; width: 15%;">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${productsHtml}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="total-section">
+        <div class="total-box">
+            <div class="total-label">Total Contract Amount</div>
+            <div class="total-amount">₹${Number(project.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Thank you for choosing Nikhil Wood Industry! We guarantee quality workmanship.</p>
+        <p style="margin-top: 5px; font-size: 11px;">This is a computer-generated document. No signature required.</p>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+        };
+    </script>
+</body>
+</html>
+                `);
+                printWindow.document.close();
+            });
+        }
     }
 };

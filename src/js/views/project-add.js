@@ -1,6 +1,57 @@
 import { addProject } from '../state.js';
 import { navigate } from '../router.js';
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function createRowHtml(index, itemName = '', qty = 1, size = '', price = '') {
+    return `
+    <div class="product-row" data-index="${index}">
+        <div class="product-row-header">
+            <span class="product-no">#${index + 1}</span>
+            <button type="button" class="btn-delete-item" aria-label="Delete Item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                <span>Delete</span>
+            </button>
+        </div>
+        <div class="product-fields-grid">
+            <div class="field-item-name">
+                <label class="compact-label">Item Name <span style="color: var(--color-danger-text);">*</span></label>
+                <input type="text" class="product-input item-name" value="${escapeHtml(itemName)}" placeholder="e.g. Wardrobe, Kitchen Cabinets" required>
+            </div>
+            <div class="field-qty">
+                <label class="compact-label">Quantity</label>
+                <div class="qty-control">
+                    <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">-</button>
+                    <input type="text" class="qty-input item-qty" value="${qty}" readonly>
+                    <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
+                </div>
+            </div>
+            <div class="field-size">
+                <label class="compact-label">Size</label>
+                <input type="text" class="product-input item-size" value="${escapeHtml(size)}" placeholder="e.g. 8x4 feet">
+            </div>
+            <div class="field-price">
+                <label class="compact-label">Price (₹) <span style="color: var(--color-danger-text);">*</span></label>
+                <input type="number" class="product-input item-price" value="${price}" placeholder="e.g. 15000" min="0" inputmode="numeric" pattern="[0-9]*">
+            </div>
+        </div>
+    </div>
+    `;
+}
+
 export const ProjectAddView = {
     render: () => {
         // Default date string formatted as YYYY-MM-DD
@@ -19,39 +70,74 @@ export const ProjectAddView = {
             </header>
             
             <main class="container">
-                <h1 class="mb-6">Add New Project</h1>
+                <h1 class="mb-6">Create Quotation / Project</h1>
                 
                 <form id="add-project-form" novalidate>
                     <!-- Error Box (hidden by default) -->
-                    <div id="form-error" class="badge badge-completed" style="background-color: var(--color-danger-bg); color: var(--color-danger-text); border: 2px solid var(--color-danger-text); display: none; width: 100%; margin-bottom: 24px; border-radius: 12px; font-weight: 700; text-align: left; padding: 16px;">
-                        Please enter a Project Name.
+                    <div id="form-error" class="badge badge-completed" style="background-color: var(--color-danger-bg); color: var(--color-danger-text); border: 2px solid var(--color-danger-text); display: none; width: 100%; margin-bottom: 24px; border-radius: 12px; font-weight: 700; text-align: left; padding: 16px; line-height: 1.4;">
+                        Please fix the errors below.
                     </div>
                 
-                    <!-- Project Name -->
-                    <div class="form-group">
-                        <label class="form-label" for="proj-name">Project Name <span style="color: var(--color-danger-text);">*</span></label>
-                        <input type="text" id="proj-name" class="form-control" placeholder="e.g. Wardrobe, Kitchen Cupboards" required>
-                    </div>
-                    
                     <!-- Client Name -->
                     <div class="form-group">
-                        <label class="form-label" for="proj-client">Client Name</label>
-                        <input type="text" id="proj-client" class="form-control" placeholder="e.g. Ramesh Kumar">
+                        <label class="form-label" for="proj-client">Client Name <span style="color: var(--color-danger-text);">*</span></label>
+                        <input type="text" id="proj-client" class="form-control" placeholder="e.g. Ramesh Kumar" required>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label class="form-label" for="proj-phone">Phone Number</label>
+                        <input type="tel" id="proj-phone" class="form-control" placeholder="e.g. 9876543210">
+                    </div>
+
+                    <!-- Site Address -->
+                    <div class="form-group">
+                        <label class="form-label" for="proj-address">Site Address (Optional)</label>
+                        <input type="text" id="proj-address" class="form-control" placeholder="e.g. Flat 402, Green Glen Layout">
                     </div>
                     
-                    <!-- Price/Amount -->
+                    <!-- Order Date -->
                     <div class="form-group">
-                        <label class="form-label" for="proj-amount">Contract Price (₹)</label>
-                        <input type="number" id="proj-amount" class="form-control" placeholder="e.g. 35000" inputmode="numeric" min="0" pattern="[0-9]*">
-                    </div>
-                    
-                    <!-- Start Date -->
-                    <div class="form-group">
-                        <label class="form-label" for="proj-date">Start Date</label>
+                        <label class="form-label" for="proj-date">Order Date <span style="color: var(--color-danger-text);">*</span></label>
                         <input type="date" id="proj-date" class="form-control" value="${today}">
                     </div>
+
+                    <!-- Expected Completion Date -->
+                    <div class="form-group">
+                        <label class="form-label" for="proj-completion-date">Expected Completion Date (Optional)</label>
+                        <input type="date" id="proj-completion-date" class="form-control">
+                    </div>
+
+                    <!-- Product Table Section -->
+                    <div class="product-table-container">
+                        <div class="product-table-title">Product List</div>
+                        <div class="desktop-table-header">
+                            <div>No.</div>
+                            <div>Item Name <span style="color: var(--color-danger-text);">*</span></div>
+                            <div style="text-align: center;">Quantity</div>
+                            <div>Size</div>
+                            <div>Price (₹) <span style="color: var(--color-danger-text);">*</span></div>
+                            <div></div>
+                        </div>
+                        <div id="product-rows-container">
+                            <!-- Dynamically loaded rows -->
+                        </div>
+                        <button type="button" class="btn-add-item" id="btn-add-product-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add Item
+                        </button>
+                    </div>
+
+                    <!-- Total Contract Amount Box -->
+                    <div class="total-amount-box">
+                        <span class="total-amount-label">Total Contract Amount:</span>
+                        <span class="total-amount-value" id="total-contract-amount">₹0</span>
+                    </div>
                     
-                    <!-- Status Segmented Toggle -->
+                    <!-- Status Toggle -->
                     <div class="form-group mb-6">
                         <label class="form-label">Status</label>
                         <div class="segmented-control">
@@ -90,8 +176,9 @@ export const ProjectAddView = {
         const errorBox = document.getElementById('form-error');
         const cancelBtn = document.getElementById('btn-cancel-form');
         const headerBackBtn = document.getElementById('btn-cancel-add');
+        const productRowsContainer = document.getElementById('product-rows-container');
+        const addProductRowBtn = document.getElementById('btn-add-product-row');
         
-        // Navigation back functions
         const goBack = () => {
             navigate('/');
         };
@@ -99,23 +186,134 @@ export const ProjectAddView = {
         cancelBtn.addEventListener('click', goBack);
         headerBackBtn.addEventListener('click', goBack);
         
+        // Helper to recalculate indices and total contract amount
+        const updateSerialNumbersAndTotal = () => {
+            const rows = productRowsContainer.getElementsByClassName('product-row');
+            let total = 0;
+            
+            Array.from(rows).forEach((row, idx) => {
+                const noSpan = row.querySelector('.product-no');
+                if (noSpan) noSpan.textContent = `#${idx + 1}`;
+                row.setAttribute('data-index', idx);
+                
+                const priceInput = row.querySelector('.item-price');
+                const qtyInput = row.querySelector('.item-qty');
+                
+                const price = parseFloat(priceInput.value) || 0;
+                const qty = parseInt(qtyInput.value) || 1;
+                total += price * qty;
+            });
+            
+            const totalVal = document.getElementById('total-contract-amount');
+            if (totalVal) {
+                totalVal.textContent = '₹' + total.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            }
+        };
+
+        // Bind events for quantity controls and deletion in a row
+        const bindRowEvents = (row) => {
+            const deleteBtn = row.querySelector('.btn-delete-item');
+            deleteBtn.addEventListener('click', () => {
+                row.remove();
+                updateSerialNumbersAndTotal();
+            });
+            
+            const qtyInput = row.querySelector('.item-qty');
+            const minusBtn = row.querySelector('.qty-minus');
+            const plusBtn = row.querySelector('.qty-plus');
+            
+            minusBtn.addEventListener('click', () => {
+                let val = parseInt(qtyInput.value) || 1;
+                if (val > 1) {
+                    qtyInput.value = val - 1;
+                    updateSerialNumbersAndTotal();
+                }
+            });
+            
+            plusBtn.addEventListener('click', () => {
+                let val = parseInt(qtyInput.value) || 1;
+                qtyInput.value = val + 1;
+                updateSerialNumbersAndTotal();
+            });
+            
+            const priceInput = row.querySelector('.item-price');
+            priceInput.addEventListener('input', updateSerialNumbersAndTotal);
+        };
+
+        const addRow = (itemName = '', qty = 1, size = '', price = '') => {
+            const index = productRowsContainer.children.length;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = createRowHtml(index, itemName, qty, size, price);
+            const rowElement = tempDiv.firstElementChild;
+            productRowsContainer.appendChild(rowElement);
+            bindRowEvents(rowElement);
+            updateSerialNumbersAndTotal();
+        };
+
+        // Add initial default product row
+        addRow();
+
+        addProductRowBtn.addEventListener('click', () => {
+            addRow();
+            // Scroll down to the new row
+            const rows = productRowsContainer.getElementsByClassName('product-row');
+            if (rows.length > 0) {
+                rows[rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+        
         // Handle Submit
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const name = document.getElementById('proj-name').value;
-            const client = document.getElementById('proj-client').value;
-            const amount = document.getElementById('proj-amount').value;
+            const client = document.getElementById('proj-client').value.trim();
+            const phone = document.getElementById('proj-phone').value.trim();
+            const siteAddress = document.getElementById('proj-address').value.trim();
             const startDate = document.getElementById('proj-date').value;
+            const expectedCompletionDate = document.getElementById('proj-completion-date').value;
             
-            // Get selected radio value
             const statusElement = document.querySelector('input[name="status"]:checked');
             const status = statusElement ? statusElement.value : 'Running';
             
-            // Validate name (required)
-            if (!name.trim()) {
+            // Validation
+            const errors = [];
+            if (!client) {
+                errors.push('Please enter the Client Name.');
+            }
+
+            const rows = productRowsContainer.getElementsByClassName('product-row');
+            if (rows.length === 0) {
+                errors.push('Please add at least one product/item.');
+            }
+
+            const productsData = [];
+            Array.from(rows).forEach((row, idx) => {
+                const itemName = row.querySelector('.item-name').value.trim();
+                const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                const size = row.querySelector('.item-size').value.trim();
+                const priceVal = row.querySelector('.item-price').value;
+                const price = parseFloat(priceVal);
+
+                if (!itemName) {
+                    errors.push(`Item #${idx + 1}: Please enter an Item Name.`);
+                }
+                if (priceVal === '' || isNaN(price) || price < 0) {
+                    errors.push(`Item #${idx + 1}: Please enter a valid Price (0 or more).`);
+                }
+
+                productsData.push({
+                    no: idx + 1,
+                    itemName,
+                    quantity: qty,
+                    size,
+                    price: price || 0
+                });
+            });
+            
+            if (errors.length > 0) {
+                errorBox.innerHTML = errors.map(err => `<div>• ${err}</div>`).join('');
                 errorBox.style.display = 'block';
-                window.scrollTo(0, 0); // Scroll to error box
+                window.scrollTo(0, 0); // Scroll to top to see error box
                 return;
             }
             
@@ -123,10 +321,12 @@ export const ProjectAddView = {
             
             // Add Project through State manager
             addProject({
-                name,
                 client,
-                amount,
+                phone,
+                siteAddress,
                 startDate,
+                expectedCompletionDate,
+                products: productsData,
                 status
             });
             

@@ -15,6 +15,18 @@ const MOCK_PROJECTS = [
         id: 'mock-1',
         name: 'Kitchen Cabinets',
         client: 'Ramesh Sharma',
+        phone: '9876543210',
+        siteAddress: 'Flat 402, Green Glen Layout, Bangalore',
+        expectedCompletionDate: '2026-08-15',
+        products: [
+            {
+                no: 1,
+                itemName: 'Kitchen Cabinets',
+                quantity: 1,
+                size: '8x4 feet',
+                price: 45000
+            }
+        ],
         amount: 45000,
         startDate: new Date().toISOString().split('T')[0], // Today
         status: 'Running',
@@ -57,6 +69,18 @@ const MOCK_PROJECTS = [
         id: 'mock-2',
         name: 'Oak Wardrobe',
         client: 'Suresh Patel',
+        phone: '8765432109',
+        siteAddress: 'Sector 5, HSR Layout, Bangalore',
+        expectedCompletionDate: '2026-07-30',
+        products: [
+            {
+                no: 1,
+                itemName: 'Oak Wardrobe',
+                quantity: 1,
+                size: '6x3 feet',
+                price: 28000
+            }
+        ],
         amount: 28000,
         startDate: '2026-06-15',
         status: 'Completed',
@@ -86,6 +110,21 @@ export function getProjects() {
         }
         if (!p.expenses) {
             p.expenses = [];
+            updated = true;
+        }
+        if (!p.products) {
+            p.products = [
+                {
+                    no: 1,
+                    itemName: p.name || 'Project Item',
+                    quantity: 1,
+                    size: 'N/A',
+                    price: p.amount || 0
+                }
+            ];
+            p.phone = p.phone || '';
+            p.siteAddress = p.siteAddress || '';
+            p.expectedCompletionDate = p.expectedCompletionDate || '';
             updated = true;
         }
         if (!p.activityLog || p.activityLog.length === 0) {
@@ -127,12 +166,30 @@ export function getProject(id) {
 
 export function addProject(projectData) {
     const projects = getProjects();
+    const products = projectData.products || [];
+    const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0) * (parseInt(p.quantity) || 1), 0);
+    
+    // Derive name for backward compatibility
+    let derivedName = '';
+    if (products.length > 0) {
+        derivedName = products[0].itemName;
+        if (products.length > 1) {
+            derivedName += ` +${products.length - 1} items`;
+        }
+    } else {
+        derivedName = 'New Project';
+    }
+
     const newProject = {
         id: 'proj-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
-        name: projectData.name.trim(),
+        name: derivedName,
         client: (projectData.client || '').trim(),
-        amount: parseFloat(projectData.amount) || 0,
+        phone: (projectData.phone || '').trim(),
+        siteAddress: (projectData.siteAddress || '').trim(),
+        amount: totalAmount,
         startDate: projectData.startDate || new Date().toISOString().split('T')[0],
+        expectedCompletionDate: projectData.expectedCompletionDate || '',
+        products: products,
         status: projectData.status || 'Running',
         payments: [],
         expenses: [],
@@ -149,12 +206,29 @@ export function updateProject(id, updatedData) {
     const index = projects.findIndex(p => p.id === id);
     if (index === -1) return null;
     
+    const products = updatedData.products || [];
+    const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0) * (parseInt(p.quantity) || 1), 0);
+    
+    let derivedName = '';
+    if (products.length > 0) {
+        derivedName = products[0].itemName;
+        if (products.length > 1) {
+            derivedName += ` +${products.length - 1} items`;
+        }
+    } else {
+        derivedName = 'New Project';
+    }
+
     projects[index] = {
         ...projects[index],
-        name: updatedData.name.trim(),
+        name: derivedName,
         client: (updatedData.client || '').trim(),
-        amount: parseFloat(updatedData.amount) || 0,
+        phone: (updatedData.phone || '').trim(),
+        siteAddress: (updatedData.siteAddress || '').trim(),
+        amount: totalAmount,
         startDate: updatedData.startDate || projects[index].startDate,
+        expectedCompletionDate: updatedData.expectedCompletionDate || '',
+        products: products,
         status: updatedData.status || projects[index].status
     };
     
