@@ -1,5 +1,7 @@
 import { getProject, deleteProject } from '../state.js';
 import { navigate } from '../router.js';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 function formatPrice(amount) {
     return '₹' + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -493,229 +495,215 @@ export const ProjectDetailsView = {
             navigate('/');
         });
 
-        // Print PDF function
+        // Print PDF function using jsPDF (mobile compatible, direct download)
         const printBtn = document.getElementById('btn-print-pdf');
         if (printBtn) {
             printBtn.addEventListener('click', () => {
-                const printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                    alert('Please allow popups to generate the PDF quotation.');
-                    return;
+                try {
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    // Set standard document properties
+                    doc.setProperties({
+                        title: `Quotation - ${project.client}`,
+                        subject: 'Quotation',
+                        author: 'Nikhil Wood Industry',
+                        keywords: 'quotation, furniture, wood'
+                    });
+
+                    // 1. Header Section
+                    // Terracotta Accent: RGB (211, 84, 0)
+                    doc.setTextColor(211, 84, 0);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.setFontSize(22);
+                    doc.text('NIKHIL WOOD INDUSTRY', 15, 20);
+
+                    doc.setTextColor(85, 85, 85);
+                    doc.setFont('Helvetica', 'oblique');
+                    doc.setFontSize(9);
+                    doc.text('Premium Carpentry & Custom Furniture Work', 15, 25);
+
+                    doc.setFont('Helvetica', 'normal');
+                    doc.text('Phone: +91 98765 43210  |  Email: jayaprakashjp404@gmail.com', 15, 30);
+                    doc.text('Workshop: Timber Market Area, Site Road', 15, 35);
+
+                    // Right side: QUOTATION Title & Metadata
+                    doc.setTextColor(17, 17, 17);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.setFontSize(24);
+                    doc.text('QUOTATION', 195, 22, { align: 'right' });
+
+                    doc.setFont('Helvetica', 'normal');
+                    doc.setFontSize(9);
+                    doc.setTextColor(85, 85, 85);
+                    doc.text(`Date: ${formatDate(project.startDate)}`, 195, 28, { align: 'right' });
+                    doc.text(`Quotation No: QT-${project.id.replace('proj-', '').toUpperCase()}`, 195, 33, { align: 'right' });
+
+                    // Horizontal Line
+                    doc.setDrawColor(211, 84, 0);
+                    doc.setLineWidth(0.8);
+                    doc.line(15, 40, 195, 40);
+
+                    // 2. Customer Details Card (Box)
+                    const boxX = 15;
+                    const boxY = 45;
+                    const boxWidth = 180;
+                    const boxHeight = 35;
+                    
+                    // Draw box background and border
+                    doc.setFillColor(250, 250, 250);
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'FD');
+
+                    // Quotation For Title
+                    doc.setTextColor(211, 84, 0);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.setFontSize(10);
+                    doc.text('QUOTATION FOR', boxX + 6, boxY + 7);
+
+                    // Small divider inside box
+                    doc.setDrawColor(251, 238, 230);
+                    doc.line(boxX + 6, boxY + 10, boxX + boxWidth - 6, boxY + 10);
+
+                    // Details text inside box
+                    doc.setTextColor(17, 17, 17);
+                    doc.setFontSize(9.5);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Client Name:', boxX + 6, boxY + 16);
+                    doc.setFont('Helvetica', 'normal');
+                    doc.text(project.client || 'N/A', boxX + 32, boxY + 16);
+
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Phone:', boxX + 6, boxY + 22);
+                    doc.setFont('Helvetica', 'normal');
+                    doc.text(project.phone || 'N/A', boxX + 32, boxY + 22);
+
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Site Address:', boxX + 6, boxY + 28);
+                    doc.setFont('Helvetica', 'normal');
+                    // Split address if too long to fit
+                    const addressVal = project.siteAddress || 'N/A';
+                    const splitAddress = doc.splitTextToSize(addressVal, 140);
+                    doc.text(splitAddress, boxX + 32, boxY + 28);
+
+                    // Right column inside box
+                    const rightColX = boxX + 110;
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Order Date:', rightColX, boxY + 16);
+                    doc.setFont('Helvetica', 'normal');
+                    doc.text(formatDate(project.startDate), rightColX + 22, boxY + 16);
+
+                    if (project.expectedCompletionDate) {
+                        doc.setFont('Helvetica', 'bold');
+                        doc.text('Completion:', rightColX, boxY + 22);
+                        doc.setFont('Helvetica', 'normal');
+                        doc.text(formatDate(project.expectedCompletionDate), rightColX + 22, boxY + 22);
+                    }
+
+                    // 3. Products Table using jspdf-autotable
+                    const tableHeaders = [['No.', 'Item Description', 'Quantity', 'Size', 'Price', 'Total']];
+                    const tableBody = (project.products || []).map((prod, index) => [
+                        prod.no || (index + 1),
+                        prod.itemName || '',
+                        prod.quantity || 1,
+                        prod.size || 'N/A',
+                        '₹' + Number(prod.price).toLocaleString('en-IN'),
+                        '₹' + Number(prod.price * prod.quantity).toLocaleString('en-IN')
+                    ]);
+
+                    autoTable(doc, {
+                        startY: boxY + boxHeight + 8,
+                        head: tableHeaders,
+                        body: tableBody,
+                        theme: 'striped',
+                        headStyles: {
+                            fillColor: [211, 84, 0], // Terracotta Accent
+                            textColor: [255, 255, 255],
+                            fontSize: 9.5,
+                            fontStyle: 'bold'
+                        },
+                        bodyStyles: {
+                            fontSize: 9.5,
+                            textColor: [17, 17, 17]
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 12, halign: 'center' },
+                            1: { cellWidth: 78 },
+                            2: { cellWidth: 20, halign: 'center' },
+                            3: { cellWidth: 25 },
+                            4: { cellWidth: 22, halign: 'right' },
+                            5: { cellWidth: 23, halign: 'right' }
+                        },
+                        margin: { left: 15, right: 15 }
+                    });
+
+                    // 4. Total Contract Amount Card
+                    const finalY = doc.lastAutoTable.finalY + 8;
+                    const totalBoxWidth = 65;
+                    const totalBoxHeight = 15;
+                    const totalBoxX = 195 - totalBoxWidth;
+
+                    // Check if it fits on page, if not, add page
+                    if (finalY + totalBoxHeight > 275) {
+                        doc.addPage();
+                        doc.setFillColor(251, 238, 230);
+                        doc.setDrawColor(211, 84, 0);
+                        doc.setLineWidth(0.3);
+                        doc.roundedRect(totalBoxX, 20, totalBoxWidth, totalBoxHeight, 2, 2, 'FD');
+                        
+                        doc.setTextColor(85, 85, 85);
+                        doc.setFontSize(8.5);
+                        doc.setFont('Helvetica', 'normal');
+                        doc.text('Total Contract Amount', totalBoxX + 5, 25);
+                        
+                        doc.setTextColor(211, 84, 0);
+                        doc.setFontSize(13);
+                        doc.setFont('Helvetica', 'bold');
+                        doc.text('₹' + Number(project.amount).toLocaleString('en-IN'), totalBoxX + 5, 31);
+                    } else {
+                        doc.setFillColor(251, 238, 230);
+                        doc.setDrawColor(211, 84, 0);
+                        doc.setLineWidth(0.3);
+                        doc.roundedRect(totalBoxX, finalY, totalBoxWidth, totalBoxHeight, 2, 2, 'FD');
+                        
+                        doc.setTextColor(85, 85, 85);
+                        doc.setFontSize(8.5);
+                        doc.setFont('Helvetica', 'normal');
+                        doc.text('Total Contract Amount', totalBoxX + 5, finalY + 5);
+                        
+                        doc.setTextColor(211, 84, 0);
+                        doc.setFontSize(13);
+                        doc.setFont('Helvetica', 'bold');
+                        doc.text('₹' + Number(project.amount).toLocaleString('en-IN'), totalBoxX + 5, finalY + 11);
+                    }
+
+                    // 5. Footer (drawn at bottom of current page)
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.3);
+                        doc.line(15, 278, 195, 278);
+
+                        doc.setTextColor(119, 119, 119);
+                        doc.setFontSize(8);
+                        doc.setFont('Helvetica', 'normal');
+                        doc.text('Thank you for choosing Nikhil Wood Industry! We guarantee quality workmanship.', 105, 283, { align: 'center' });
+                        doc.text('This is a computer-generated document. No signature required.', 105, 287, { align: 'center' });
+                    }
+
+                    // Trigger direct PDF download
+                    const fileName = `Quotation_${project.client.replace(/\s+/g, '_')}.pdf`;
+                    doc.save(fileName);
+
+                } catch (err) {
+                    console.error('PDF Generation failed:', err);
+                    alert('PDF Generation failed: ' + err.message);
                 }
-                
-                // Build products rows HTML
-                const productsHtml = (project.products || []).map(prod => `
-                    <tr>
-                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px;">${prod.no}</td>
-                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; word-break: break-word;">${escapeHtml(prod.itemName)}</td>
-                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; text-align: center;">${prod.quantity}</td>
-                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px;">${escapeHtml(prod.size || 'N/A')}</td>
-                        <td style="border-bottom: 1px solid #E2E8F0; padding: 12px 10px; font-size: 15px; text-align: right; font-weight: 600;">₹${Number(prod.price).toLocaleString('en-IN')}</td>
-                    </tr>
-                `).join('');
-
-                const addressHtml = project.siteAddress 
-                    ? `<p style="font-size: 15px; margin: 6px 0; color: #333;"><strong>Site Address:</strong> ${escapeHtml(project.siteAddress)}</p>` 
-                    : '';
-                const completionHtml = project.expectedCompletionDate 
-                    ? `<p style="font-size: 15px; margin: 6px 0; color: #333;"><strong>Expected Completion:</strong> ${formatDate(project.expectedCompletionDate)}</p>` 
-                    : '';
-
-                printWindow.document.write(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Quotation - ${escapeHtml(project.client)}</title>
-    <style>
-        body {
-            font-family: 'Outfit', -apple-system, sans-serif;
-            color: #111;
-            margin: 40px;
-            padding: 0;
-            line-height: 1.6;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 3px solid #D35400;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-        .company-details h1 {
-            font-size: 30px;
-            font-weight: 700;
-            color: #D35400;
-            margin: 0 0 5px 0;
-            letter-spacing: -0.5px;
-        }
-        .company-details p {
-            font-size: 14px;
-            color: #555;
-            margin: 2px 0;
-        }
-        .quotation-title {
-            text-align: right;
-        }
-        .quotation-title h2 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #111;
-            margin: 0 0 10px 0;
-            letter-spacing: 1px;
-        }
-        .quotation-title p {
-            font-size: 14px;
-            color: #555;
-            margin: 2px 0;
-        }
-        .details-section {
-            margin-bottom: 40px;
-        }
-        .customer-details {
-            border: 1.5px solid #E2E8F0;
-            border-radius: 8px;
-            padding: 20px;
-            background-color: #FAFAFA;
-        }
-        .customer-details h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #D35400;
-            margin: 0 0 12px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1.5px solid #FBEEE6;
-            padding-bottom: 6px;
-        }
-        .customer-details p {
-            font-size: 15px;
-            margin: 6px 0;
-            color: #333;
-        }
-        .table-container {
-            margin-bottom: 30px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th {
-            background-color: #FBEEE6;
-            color: #D35400;
-            font-weight: 700;
-            border-bottom: 2px solid #D35400;
-            padding: 12px 10px;
-            font-size: 14px;
-        }
-        tr:nth-child(even) td {
-            background-color: #FDFEFE;
-        }
-        .total-section {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        .total-box {
-            background-color: #FBEEE6;
-            border: 1.5px solid #D35400;
-            border-radius: 8px;
-            padding: 15px 25px;
-            text-align: right;
-            min-width: 250px;
-        }
-        .total-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-        }
-        .total-amount {
-            font-size: 24px;
-            font-weight: 800;
-            color: #D35400;
-            margin-top: 4px;
-        }
-        .footer {
-            margin-top: 60px;
-            border-top: 1px solid #E2E8F0;
-            padding-top: 20px;
-            text-align: center;
-            font-size: 13px;
-            color: #777;
-        }
-        @media print {
-            body {
-                margin: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="company-details">
-            <h1>NIKHIL WOOD INDUSTRY</h1>
-            <p>Premium Carpentry &amp; Custom Furniture Work</p>
-            <p>Phone: +91 98765 43210 | Email: jayaprakashjp404@gmail.com</p>
-            <p>Workshop: Timber Market Area, Site Road</p>
-        </div>
-        <div class="quotation-title">
-            <h2>QUOTATION</h2>
-            <p><strong>Date:</strong> ${formatDate(project.startDate)}</p>
-            <p><strong>Quotation No:</strong> QT-${project.id.replace('proj-', '').toUpperCase()}</p>
-        </div>
-    </div>
-    
-    <div class="details-section">
-        <div class="customer-details">
-            <h3>Quotation For</h3>
-            <p><strong>Name:</strong> ${escapeHtml(project.client)}</p>
-            <p><strong>Phone:</strong> ${escapeHtml(project.phone || 'N/A')}</p>
-            ${addressHtml}
-            ${completionHtml}
-        </div>
-    </div>
-    
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 8%;">No.</th>
-                    <th style="width: 47%;">Item Description</th>
-                    <th style="text-align: center; width: 15%;">Quantity</th>
-                    <th style="width: 15%;">Size</th>
-                    <th style="text-align: right; width: 15%;">Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${productsHtml}
-            </tbody>
-        </table>
-    </div>
-    
-    <div class="total-section">
-        <div class="total-box">
-            <div class="total-label">Total Contract Amount</div>
-            <div class="total-amount">₹${Number(project.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p>Thank you for choosing Nikhil Wood Industry! We guarantee quality workmanship.</p>
-        <p style="margin-top: 5px; font-size: 11px;">This is a computer-generated document. No signature required.</p>
-    </div>
-    
-    <script>
-        window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
-        };
-    </script>
-</body>
-</html>
-                `);
-                printWindow.document.close();
             });
         }
     }
