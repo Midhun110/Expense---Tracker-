@@ -27,6 +27,16 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
+function cleanUnicodeForPDF(str) {
+    if (!str) return '';
+    return str
+        .replace(/[\u2018\u2019]/g, "'") // curly single quotes
+        .replace(/[\u201C\u201D]/g, '"') // curly double quotes
+        .replace(/₹/g, 'Rs. ')
+        .replace(/[\u2013\u2014]/g, '-')  // en/em dashes
+        .replace(/\u00A0/g, ' ');         // non-breaking space
+}
+
 function formatActivityDateTime(timestamp) {
     if (!timestamp) return 'Just now';
     const date = new Date(timestamp);
@@ -508,9 +518,9 @@ export const ProjectDetailsView = {
 
                     // Set standard document properties
                     doc.setProperties({
-                        title: `Quotation - ${project.client}`,
+                        title: `Quotation - ${cleanUnicodeForPDF(project.client)}`,
                         subject: 'Quotation',
-                        author: 'Nikhil Wood Industry',
+                        author: 'Nikhil Wood Industries',
                         keywords: 'quotation, furniture, wood'
                     });
 
@@ -519,7 +529,7 @@ export const ProjectDetailsView = {
                     doc.setTextColor(211, 84, 0);
                     doc.setFont('Helvetica', 'bold');
                     doc.setFontSize(22);
-                    doc.text('NIKHIL WOOD INDUSTRY', 15, 20);
+                    doc.text('NIKHIL WOOD INDUSTRIES', 15, 20);
 
                     doc.setTextColor(85, 85, 85);
                     doc.setFont('Helvetica', 'oblique');
@@ -527,7 +537,7 @@ export const ProjectDetailsView = {
                     doc.text('Premium Carpentry & Custom Furniture Work', 15, 25);
 
                     doc.setFont('Helvetica', 'normal');
-                    doc.text('Phone: +91 98765 43210  |  Email: jayaprakashjp404@gmail.com', 15, 30);
+                    doc.text('Phone: 9947263836  |  Email: jayaprakashjp404@gmail.com', 15, 30);
                     doc.text('Workshop: Timber Market Area, Site Road', 15, 35);
 
                     // Right side: QUOTATION Title & Metadata
@@ -569,119 +579,109 @@ export const ProjectDetailsView = {
                     doc.setDrawColor(251, 238, 230);
                     doc.line(boxX + 6, boxY + 10, boxX + boxWidth - 6, boxY + 10);
 
-                    // Details text inside box
+                    // Details text inside box (aligned grid)
                     doc.setTextColor(17, 17, 17);
                     doc.setFontSize(9.5);
+
+                    // Left Column
                     doc.setFont('Helvetica', 'bold');
                     doc.text('Client Name:', boxX + 6, boxY + 16);
                     doc.setFont('Helvetica', 'normal');
-                    doc.text(project.client || 'N/A', boxX + 32, boxY + 16);
+                    doc.text(cleanUnicodeForPDF(project.client || 'N/A'), boxX + 35, boxY + 16);
 
                     doc.setFont('Helvetica', 'bold');
                     doc.text('Phone:', boxX + 6, boxY + 22);
                     doc.setFont('Helvetica', 'normal');
-                    doc.text(project.phone || 'N/A', boxX + 32, boxY + 22);
+                    doc.text(cleanUnicodeForPDF(project.phone || 'N/A'), boxX + 35, boxY + 22);
 
                     doc.setFont('Helvetica', 'bold');
                     doc.text('Site Address:', boxX + 6, boxY + 28);
                     doc.setFont('Helvetica', 'normal');
-                    // Split address if too long to fit
-                    const addressVal = project.siteAddress || 'N/A';
-                    const splitAddress = doc.splitTextToSize(addressVal, 140);
-                    doc.text(splitAddress, boxX + 32, boxY + 28);
+                    const addressVal = cleanUnicodeForPDF(project.siteAddress || 'N/A');
+                    const splitAddress = doc.splitTextToSize(addressVal, 68);
+                    doc.text(splitAddress, boxX + 35, boxY + 28);
 
-                    // Right column inside box
-                    const rightColX = boxX + 110;
+                    // Right Column
+                    const rightColX = boxX + 105;
                     doc.setFont('Helvetica', 'bold');
                     doc.text('Order Date:', rightColX, boxY + 16);
                     doc.setFont('Helvetica', 'normal');
-                    doc.text(formatDate(project.startDate), rightColX + 22, boxY + 16);
+                    doc.text(formatDate(project.startDate), rightColX + 33, boxY + 16);
 
                     if (project.expectedCompletionDate) {
                         doc.setFont('Helvetica', 'bold');
                         doc.text('Completion:', rightColX, boxY + 22);
                         doc.setFont('Helvetica', 'normal');
-                        doc.text(formatDate(project.expectedCompletionDate), rightColX + 22, boxY + 22);
+                        doc.text(formatDate(project.expectedCompletionDate), rightColX + 33, boxY + 22);
                     }
 
-                    // 3. Products Table using jspdf-autotable
+                    // 3. Products Table using jspdf-autotable (grid layout)
                     const tableHeaders = [['No.', 'Item Description', 'Quantity', 'Size', 'Price', 'Total']];
                     const tableBody = (project.products || []).map((prod, index) => [
                         prod.no || (index + 1),
-                        prod.itemName || '',
+                        cleanUnicodeForPDF(prod.itemName || ''),
                         prod.quantity || 1,
-                        prod.size || 'N/A',
-                        '₹' + Number(prod.price).toLocaleString('en-IN'),
-                        '₹' + Number(prod.price * prod.quantity).toLocaleString('en-IN')
+                        cleanUnicodeForPDF(prod.size || 'N/A'),
+                        'Rs. ' + Number(prod.price).toLocaleString('en-IN'),
+                        'Rs. ' + Number(prod.price * prod.quantity).toLocaleString('en-IN')
                     ]);
 
                     autoTable(doc, {
                         startY: boxY + boxHeight + 8,
                         head: tableHeaders,
                         body: tableBody,
-                        theme: 'striped',
+                        theme: 'grid',
+                        styles: {
+                            font: 'Helvetica',
+                            fontSize: 9.5,
+                            cellPadding: 3,
+                            lineColor: [226, 232, 240],
+                            lineWidth: 0.25
+                        },
                         headStyles: {
                             fillColor: [211, 84, 0], // Terracotta Accent
                             textColor: [255, 255, 255],
-                            fontSize: 9.5,
-                            fontStyle: 'bold'
-                        },
-                        bodyStyles: {
-                            fontSize: 9.5,
-                            textColor: [17, 17, 17]
+                            fontStyle: 'bold',
+                            lineWidth: 0.25,
+                            lineColor: [211, 84, 0]
                         },
                         columnStyles: {
-                            0: { cellWidth: 12, halign: 'center' },
-                            1: { cellWidth: 78 },
-                            2: { cellWidth: 20, halign: 'center' },
-                            3: { cellWidth: 25 },
-                            4: { cellWidth: 22, halign: 'right' },
-                            5: { cellWidth: 23, halign: 'right' }
+                            0: { cellWidth: 8, halign: 'center' },
+                            1: { cellWidth: 70, halign: 'left' },
+                            2: { cellWidth: 22, halign: 'center' },
+                            3: { cellWidth: 25, halign: 'center' },
+                            4: { cellWidth: 25, halign: 'right' },
+                            5: { cellWidth: 30, halign: 'right' }
                         },
                         margin: { left: 15, right: 15 }
                     });
 
-                    // 4. Total Contract Amount Card
-                    const finalY = doc.lastAutoTable.finalY + 8;
-                    const totalBoxWidth = 65;
-                    const totalBoxHeight = 15;
-                    const totalBoxX = 195 - totalBoxWidth;
-
+                    // 4. Total Contract Amount Section (Inline below table)
+                    const finalY = doc.lastAutoTable.finalY;
+                    let textY = finalY + 11;
+                    
                     // Check if it fits on page, if not, add page
-                    if (finalY + totalBoxHeight > 275) {
+                    if (textY + 5 > 275) {
                         doc.addPage();
-                        doc.setFillColor(251, 238, 230);
-                        doc.setDrawColor(211, 84, 0);
-                        doc.setLineWidth(0.3);
-                        doc.roundedRect(totalBoxX, 20, totalBoxWidth, totalBoxHeight, 2, 2, 'FD');
-                        
-                        doc.setTextColor(85, 85, 85);
-                        doc.setFontSize(8.5);
-                        doc.setFont('Helvetica', 'normal');
-                        doc.text('Total Contract Amount', totalBoxX + 5, 25);
-                        
-                        doc.setTextColor(211, 84, 0);
-                        doc.setFontSize(13);
-                        doc.setFont('Helvetica', 'bold');
-                        doc.text('₹' + Number(project.amount).toLocaleString('en-IN'), totalBoxX + 5, 31);
-                    } else {
-                        doc.setFillColor(251, 238, 230);
-                        doc.setDrawColor(211, 84, 0);
-                        doc.setLineWidth(0.3);
-                        doc.roundedRect(totalBoxX, finalY, totalBoxWidth, totalBoxHeight, 2, 2, 'FD');
-                        
-                        doc.setTextColor(85, 85, 85);
-                        doc.setFontSize(8.5);
-                        doc.setFont('Helvetica', 'normal');
-                        doc.text('Total Contract Amount', totalBoxX + 5, finalY + 5);
-                        
-                        doc.setTextColor(211, 84, 0);
-                        doc.setFontSize(13);
-                        doc.setFont('Helvetica', 'bold');
-                        doc.text('₹' + Number(project.amount).toLocaleString('en-IN'), totalBoxX + 5, finalY + 11);
+                        textY = 25;
                     }
+                    
+                    // Draw a straight horizontal line under the table (15mm to 195mm)
+                    doc.setDrawColor(211, 84, 0);
+                    doc.setLineWidth(0.5);
+                    doc.line(15, textY - 6, 195, textY - 6);
 
-                    // 5. Footer (drawn at bottom of current page)
+                    doc.setTextColor(85, 85, 85);
+                    doc.setFontSize(9.5);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Total Contract Amount', 140, textY);
+                    
+                    doc.setTextColor(211, 84, 0);
+                    doc.setFontSize(11);
+                    doc.setFont('Helvetica', 'bold');
+                    doc.text('Rs. ' + Number(project.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 }), 195, textY, { align: 'right' });
+
+                    // 5. Footer (drawn at bottom of all pages)
                     const pageCount = doc.internal.getNumberOfPages();
                     for (let i = 1; i <= pageCount; i++) {
                         doc.setPage(i);
@@ -692,7 +692,7 @@ export const ProjectDetailsView = {
                         doc.setTextColor(119, 119, 119);
                         doc.setFontSize(8);
                         doc.setFont('Helvetica', 'normal');
-                        doc.text('Thank you for choosing Nikhil Wood Industry! We guarantee quality workmanship.', 105, 283, { align: 'center' });
+                        doc.text('Thank you for choosing Nikhil Wood Industries! We guarantee quality workmanship.', 105, 283, { align: 'center' });
                         doc.text('This is a computer-generated document. No signature required.', 105, 287, { align: 'center' });
                     }
 
