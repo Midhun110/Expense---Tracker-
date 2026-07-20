@@ -29,7 +29,8 @@ function createRowHtml(index, itemName = '', qty = 1, size = '', price = '') {
         <div class="product-fields-grid">
             <div class="field-item-name">
                 <label class="compact-label">Item Name <span style="color: var(--color-danger-text);">*</span></label>
-                <input type="text" class="product-input item-name" value="${escapeHtml(itemName)}" placeholder="e.g. Wardrobe, Kitchen Cabinets" required>
+                <input type="text" class="product-input item-name" value="${escapeHtml(itemName)}" placeholder="e.g. Wardrobe, Kitchen Cabinets" autocomplete="off" required>
+                <div class="autocomplete-dropdown"></div>
             </div>
             <div class="field-qty">
                 <label class="compact-label">Quantity</label>
@@ -274,6 +275,136 @@ export const ProjectEditView = {
             priceInput.addEventListener('input', updateSerialNumbersAndTotal);
         };
 
+        const setupAutocompleteForItem = (row) => {
+            const input = row.querySelector('.item-name');
+            const dropdown = row.querySelector('.autocomplete-dropdown');
+            if (!input || !dropdown) return;
+
+            const items = [
+                "Front door",
+                "Back door",
+                "Top front door",
+                "Front window",
+                "Back window",
+                "Kitchen window",
+                "Hall window",
+                "Window 3 paali",
+                "Window 2 paali",
+                "Kitchen window 2 paali",
+                "Hall window 2 paali",
+                "Ventilation",
+                "Main door frame (9x3 inch)",
+                "Door frame (with bottom frame)",
+                "Door frame",
+                "Front bottom window"
+            ];
+
+            let highlightedIndex = -1;
+
+            const renderDropdown = (filterText = '') => {
+                const query = filterText.toLowerCase().trim();
+                const filtered = items.filter(item => item.toLowerCase().includes(query));
+                
+                dropdown.innerHTML = '';
+                
+                if (filtered.length === 0) {
+                    dropdown.style.display = 'none';
+                    dropdown.classList.remove('active');
+                    return;
+                }
+
+                filtered.forEach((item) => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.textContent = item;
+                    
+                    if (item.toLowerCase() === input.value.toLowerCase().trim()) {
+                        div.classList.add('selected');
+                    }
+                    
+                    div.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        selectItem(item);
+                    });
+                    
+                    dropdown.appendChild(div);
+                });
+
+                dropdown.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    dropdown.classList.add('active');
+                });
+                
+                highlightedIndex = -1;
+            };
+
+            const selectItem = (value) => {
+                input.value = value;
+                closeDropdown();
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            };
+
+            const closeDropdown = () => {
+                dropdown.classList.remove('active');
+                setTimeout(() => {
+                    if (!dropdown.classList.contains('active')) {
+                        dropdown.style.display = 'none';
+                    }
+                }, 200);
+                highlightedIndex = -1;
+            };
+
+            const openDropdown = () => {
+                renderDropdown(input.value);
+            };
+
+            input.addEventListener('focus', openDropdown);
+            input.addEventListener('click', openDropdown);
+            input.addEventListener('blur', closeDropdown);
+            input.addEventListener('input', () => {
+                renderDropdown(input.value);
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const activeItems = dropdown.querySelectorAll('.autocomplete-item');
+                if (!dropdown.classList.contains('active') || activeItems.length === 0) {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                        openDropdown();
+                        e.preventDefault();
+                    }
+                    return;
+                }
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = (highlightedIndex + 1) % activeItems.length;
+                    updateHighlight(activeItems);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = (highlightedIndex - 1 + activeItems.length) % activeItems.length;
+                    updateHighlight(activeItems);
+                } else if (e.key === 'Enter') {
+                    if (highlightedIndex >= 0 && highlightedIndex < activeItems.length) {
+                        e.preventDefault();
+                        selectItem(activeItems[highlightedIndex].textContent);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeDropdown();
+                }
+            });
+
+            const updateHighlight = (itemsList) => {
+                itemsList.forEach((item, idx) => {
+                    if (idx === highlightedIndex) {
+                        item.classList.add('highlighted');
+                        item.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        item.classList.remove('highlighted');
+                    }
+                });
+            };
+        };
+
         const addRow = (itemName = '', qty = 1, size = '', price = '') => {
             const index = productRowsContainer.children.length;
             const tempDiv = document.createElement('div');
@@ -281,6 +412,7 @@ export const ProjectEditView = {
             const rowElement = tempDiv.firstElementChild;
             productRowsContainer.appendChild(rowElement);
             bindRowEvents(rowElement);
+            setupAutocompleteForItem(rowElement);
             updateSerialNumbersAndTotal();
         };
 

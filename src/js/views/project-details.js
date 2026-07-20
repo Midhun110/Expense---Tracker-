@@ -538,7 +538,7 @@ export const ProjectDetailsView = {
 
                     doc.setFont('Helvetica', 'normal');
                     doc.text('Phone: 9947263836  |  Email: jayaprakashjp404@gmail.com', 15, 30);
-                    doc.text('Workshop: Timber Market Area, Site Road', 15, 35);
+                    doc.text('Workshop: Venga, Myladumkunn, PIN: 690521', 15, 35);
 
                     // Right side: QUOTATION Title & Metadata
                     doc.setTextColor(17, 17, 17);
