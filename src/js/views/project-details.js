@@ -41,14 +41,14 @@ function formatActivityDateTime(timestamp) {
     if (!timestamp) return 'Just now';
     const date = new Date(timestamp);
     const now = new Date();
-    
+
     const dateStr = date.toDateString();
     const nowStr = now.toDateString();
-    
+
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toDateString();
-    
+
     let dateLabel = '';
     if (dateStr === nowStr) {
         dateLabel = 'Today';
@@ -60,7 +60,7 @@ function formatActivityDateTime(timestamp) {
         const y = date.getFullYear();
         dateLabel = (d < 10 ? '0' + d : d) + '-' + (m < 10 ? '0' + m : m) + '-' + y;
     }
-    
+
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -68,14 +68,14 @@ function formatActivityDateTime(timestamp) {
     hours = hours ? hours : 12;
     const strMinutes = minutes < 10 ? '0' + minutes : minutes;
     const timeLabel = hours + ':' + strMinutes + ' ' + ampm;
-    
+
     return dateLabel + ', ' + timeLabel;
 }
 
 export const ProjectDetailsView = {
     render: (params) => {
         const project = getProject(params.id);
-        
+
         if (!project) {
             return `
                 <header class="app-header">
@@ -104,9 +104,9 @@ export const ProjectDetailsView = {
                 </main>
             `;
         }
-        
+
         const badgeClass = project.status === 'Running' ? 'badge-running' : 'badge-completed';
-        
+
         // Calculate total received and sort payments chronologically (oldest to newest)
         const payments = [...(project.payments || [])];
         payments.sort((a, b) => {
@@ -114,9 +114,9 @@ export const ProjectDetailsView = {
             if (a.date > b.date) return 1;
             return a.id.localeCompare(b.id);
         });
-        
+
         const totalReceived = payments.reduce((sum, p) => sum + p.amount, 0);
-        
+
         // Generate payments HTML list
         let paymentsListHtml = '';
         if (payments.length === 0) {
@@ -145,10 +145,10 @@ export const ProjectDetailsView = {
         // Calculate total expenses and group by date
         const expenses = [...(project.expenses || [])];
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-        
+
         const ownPocket = Math.max(0, totalExpenses - totalReceived);
         const remainingToReceive = Math.max(0, project.amount - totalReceived);
-        
+
         const expensesByDate = {};
         expenses.forEach(exp => {
             if (!expensesByDate[exp.date]) {
@@ -156,9 +156,9 @@ export const ProjectDetailsView = {
             }
             expensesByDate[exp.date].push(exp);
         });
-        
+
         const sortedDates = Object.keys(expensesByDate).sort((a, b) => b.localeCompare(a));
-        
+
         let expensesListHtml = '';
         if (sortedDates.length === 0) {
             expensesListHtml = `
@@ -170,7 +170,7 @@ export const ProjectDetailsView = {
             expensesListHtml = sortedDates.map(date => {
                 const dateGroupExpenses = expensesByDate[date];
                 dateGroupExpenses.sort((a, b) => a.id.localeCompare(b.id)); // sort by ID chronologically
-                
+
                 const groupCardsHtml = dateGroupExpenses.map(exp => `
                     <div class="payment-card" style="margin-bottom: 8px;">
                         <div style="flex: 1; min-width: 0;">
@@ -185,7 +185,7 @@ export const ProjectDetailsView = {
                         </a>
                     </div>
                 `).join('');
-                
+
                 return `
                     <div style="margin-bottom: 20px;">
                         <div class="expense-date-header">${formatDate(date)}</div>
@@ -196,7 +196,7 @@ export const ProjectDetailsView = {
                 `;
             }).join('');
         }
-        
+
         // Render Recent Activity timeline sorted descending (newest first)
         const activityLog = [...(project.activityLog || [])].sort((a, b) => b.timestamp - a.timestamp);
         let activityLogHtml = '';
@@ -210,15 +210,15 @@ export const ProjectDetailsView = {
             activityLogHtml = `
                 <div class="activity-timeline">
                     ${activityLog.map(act => {
-                        const typeClass = (act.type === 'payment_received' || act.type === 'payment_edited') ? 'type-payment' : 'type-expense';
-                        const titleMap = {
-                            payment_received: 'Received Payment',
-                            payment_edited: 'Payment Edited',
-                            expense_added: 'Recorded Expense',
-                            expense_edited: 'Expense Edited'
-                        };
-                        const title = titleMap[act.type] || 'Activity';
-                        return `
+                const typeClass = (act.type === 'payment_received' || act.type === 'payment_edited') ? 'type-payment' : 'type-expense';
+                const titleMap = {
+                    payment_received: 'Received Payment',
+                    payment_edited: 'Payment Edited',
+                    expense_added: 'Recorded Expense',
+                    expense_edited: 'Expense Edited'
+                };
+                const title = titleMap[act.type] || 'Activity';
+                return `
                             <div class="activity-node">
                                 <div class="activity-dot ${typeClass}"></div>
                                 <div class="activity-bubble ${typeClass}">
@@ -234,11 +234,11 @@ export const ProjectDetailsView = {
                                 </div>
                             </div>
                         `;
-                    }).join('')}
+            }).join('')}
                 </div>
             `;
         }
-        
+
         return `
             <header class="app-header">
                 <button class="btn-back" id="btn-back-home">
@@ -453,19 +453,19 @@ export const ProjectDetailsView = {
             </div>
         `;
     },
-    
+
     init: (params) => {
         const project = getProject(params.id);
         const backBtn = document.getElementById('btn-back-home');
-        
+
         const goBack = () => {
             navigate('/');
         };
-        
+
         if (backBtn) {
             backBtn.addEventListener('click', goBack);
         }
-        
+
         if (!project) {
             const errBackBtn = document.getElementById('btn-err-back');
             if (errBackBtn) {
@@ -473,32 +473,32 @@ export const ProjectDetailsView = {
             }
             return;
         }
-        
+
         const deleteModal = document.getElementById('delete-modal');
         const openDeleteBtn = document.getElementById('btn-open-delete');
         const closeDeleteBtn = document.getElementById('btn-close-delete');
         const confirmDeleteBtn = document.getElementById('btn-confirm-delete');
-        
+
         const openModal = () => {
             deleteModal.classList.add('open');
             document.body.classList.add('scroll-locked');
         };
-        
+
         const closeModal = () => {
             deleteModal.classList.remove('open');
             document.body.classList.remove('scroll-locked');
         };
-        
+
         openDeleteBtn.addEventListener('click', openModal);
         closeDeleteBtn.addEventListener('click', closeModal);
-        
+
         // Close modal if clicked on background
         deleteModal.addEventListener('click', (e) => {
             if (e.target === deleteModal) {
                 closeModal();
             }
         });
-        
+
         confirmDeleteBtn.addEventListener('click', () => {
             closeModal();
             deleteProject(project.id);
@@ -534,11 +534,10 @@ export const ProjectDetailsView = {
                     doc.setTextColor(85, 85, 85);
                     doc.setFont('Helvetica', 'oblique');
                     doc.setFontSize(9);
-                    doc.text('Premium Carpentry & Custom Furniture Work', 15, 25);
-
+                    doc.text(' Premium Carpentry and Interior Works', 15, 25);
                     doc.setFont('Helvetica', 'normal');
                     doc.text('Phone: 9947263836  |  Email: jayaprakashjp404@gmail.com', 15, 30);
-                    doc.text('Workshop: Venga, Myladumkunn, PIN: 690521', 15, 35);
+                    doc.text('Address: Mylaadumkunn, Venga P.O., Sasthamcotta - 690521', 15, 35);
 
                     // Right side: QUOTATION Title & Metadata
                     doc.setTextColor(17, 17, 17);
@@ -562,7 +561,7 @@ export const ProjectDetailsView = {
                     const boxY = 45;
                     const boxWidth = 180;
                     const boxHeight = 35;
-                    
+
                     // Draw box background and border
                     doc.setFillColor(250, 250, 250);
                     doc.setDrawColor(226, 232, 240);
@@ -659,13 +658,13 @@ export const ProjectDetailsView = {
                     // 4. Total Contract Amount Section (Inline below table)
                     const finalY = doc.lastAutoTable.finalY;
                     let textY = finalY + 11;
-                    
+
                     // Check if it fits on page, if not, add page
                     if (textY + 5 > 275) {
                         doc.addPage();
                         textY = 25;
                     }
-                    
+
                     // Draw a straight horizontal line under the table (15mm to 195mm)
                     doc.setDrawColor(211, 84, 0);
                     doc.setLineWidth(0.5);
@@ -675,7 +674,7 @@ export const ProjectDetailsView = {
                     doc.setFontSize(9.5);
                     doc.setFont('Helvetica', 'bold');
                     doc.text('Total Contract Amount', 140, textY);
-                    
+
                     doc.setTextColor(211, 84, 0);
                     doc.setFontSize(11);
                     doc.setFont('Helvetica', 'bold');
