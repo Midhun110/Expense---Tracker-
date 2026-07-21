@@ -711,12 +711,25 @@
 
 .product-fields-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
 }
 
 .field-item-name {
-    grid-column: 1 / -1;
+    grid-column: span 2;
+    position: relative;
+}
+
+.field-qty {
+    grid-column: span 2;
+}
+
+.field-size, .field-price {
+    grid-column: span 1;
+}
+
+.desktop-table-header {
+    display: none;
 }
 
 .compact-label {
@@ -756,7 +769,8 @@
 }
 
 .qty-btn {
-    width: 50px;
+    width: 36px;
+    flex-shrink: 0;
     height: 100%;
     border: none;
     background-color: #F1F5F9;
@@ -777,6 +791,7 @@
 
 .qty-input {
     flex: 1;
+    min-width: 0;
     height: 100%;
     border: none;
     text-align: center;
@@ -784,7 +799,6 @@
     font-weight: 700;
     background-color: transparent;
     color: var(--text-primary);
-    width: 100%;
     outline: none;
 }
 
@@ -836,83 +850,7 @@
     background-color: #F5CBA7;
 }
 
-/* Desktop/Tablet Media Queries for Product Table Layout */
-@media (min-width: 600px) {
-    .product-row {
-        padding: 12px;
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
-    }
-    
-    .product-row-header {
-        border-bottom: none;
-        padding-bottom: 0;
-        margin-bottom: 0;
-        flex-shrink: 0;
-    }
-    
-    .product-fields-grid {
-        display: grid;
-        grid-template-columns: 3fr 1.8fr 1.5fr 2fr;
-        gap: 12px;
-        flex-grow: 1;
-        align-items: center;
-    }
-    
-    .field-item-name {
-        grid-column: span 1;
-    }
-    
-    .compact-label {
-        display: none; /* Header row handles labels on desktop */
-    }
-    
-    .btn-delete-item {
-        padding: 10px;
-        border-radius: 10px;
-        background-color: transparent;
-    }
-    
-    .btn-delete-item span {
-        display: none; /* Hide delete text, just show icon */
-    }
-    
-    .btn-delete-item:hover {
-        background-color: var(--color-danger-bg);
-    }
-    
-    .desktop-table-header {
-        display: grid;
-        grid-template-columns: 40px 3fr 1.8fr 1.5fr 2fr 52px;
-        gap: 12px;
-        padding: 0 12px 10px 12px;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: 12px;
-        font-weight: 700;
-        font-size: 16px;
-        color: var(--text-secondary);
-    }
-}
 
-@media (max-width: 599px) {
-    .desktop-table-header {
-        display: none;
-    }
-    
-    .product-fields-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .field-qty {
-        grid-column: span 2;
-    }
-    
-    .field-size, .field-price {
-        grid-column: span 1;
-    }
-}
 
 /* Autocomplete Dropdown Styles */
 .field-item-name {
@@ -983,5 +921,99 @@
 .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
 }
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 75px;
+    background-color: #FFFFFF;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 900;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    width: 25%;
+    height: 100%;
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item .nav-icon {
+    font-size: 26px;
+    margin-bottom: 4px;
+    transition: transform 0.2s ease;
+}
+
+.bottom-nav-item:active .nav-icon {
+    transform: scale(0.95);
+}
+
+.bottom-nav-item.active {
+    color: var(--color-primary);
+}
+
+/* Hide bottom nav on detail/edit views when body has bottom-nav-hidden class */
+body.bottom-nav-hidden .bottom-nav {
+    display: none;
+}
+body.bottom-nav-hidden {
+    padding-bottom: 24px !important;
+}
+
+/* Button & Cards Styles for Dashboard Redesign */
+.btn-new-project-large {
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-new-project-large:hover {
+    background-color: var(--color-primary-hover) !important;
+}
+.btn-new-project-large:active {
+    transform: scale(0.98);
+}
+
+.project-card-large {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.project-card-large:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-open-project {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.btn-open-project:hover {
+    background-color: #F5CBA7 !important;
+}
+.btn-open-project:active {
+    transform: scale(0.98);
+}
+
+.quick-actions-grid button, .quick-actions-grid a {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.quick-actions-grid button:hover, .quick-actions-grid a:hover {
+    background-color: var(--color-primary-light) !important;
+    border-color: var(--color-primary) !important;
+}
+.quick-actions-grid button:active, .quick-actions-grid a:active {
+    transform: scale(0.96);
+}
+
 
 

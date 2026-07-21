@@ -7,11 +7,17 @@ import { PaymentAddView } from './js/views/payment-add.js';
 import { PaymentEditView } from './js/views/payment-edit.js';
 import { ExpenseAddView } from './js/views/expense-add.js';
 import { ExpenseEditView } from './js/views/expense-edit.js';
+import { ProjectsListView } from './js/views/projects-list.js';
+import { ReportsView } from './js/views/reports.js';
+import { MoreView } from './js/views/more.js';
 import { getProjects } from './js/state.js';
 
 // Define the application routes map
 const routes = {
     '/': DashboardView,
+    '/projects': ProjectsListView,
+    '/reports': ReportsView,
+    '/more': MoreView,
     '/add': ProjectAddView,
     '/project/:id': ProjectDetailsView,
     '/project/:id/edit': ProjectEditView,
@@ -38,21 +44,54 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (!fab || !backdrop || !sheet) return;
 
+    // Toggle bottom navigation active status and overall visibility
+    const updateBottomNav = () => {
+        const hash = window.location.hash || '#/';
+        const basePath = hash.split('?')[0];
+
+        const navItems = {
+            '#/': document.getElementById('nav-home'),
+            '#/projects': document.getElementById('nav-projects'),
+            '#/reports': document.getElementById('nav-reports'),
+            '#/more': document.getElementById('nav-more')
+        };
+        
+        Object.values(navItems).forEach(el => {
+            if (el) el.classList.remove('active');
+        });
+        
+        if (navItems[basePath]) {
+            navItems[basePath].classList.add('active');
+        }
+        
+        const isMainTab = basePath === '#/' || basePath === '#' || basePath === '' || basePath === '#/projects' || basePath === '#/reports' || basePath === '#/more';
+        
+        if (isMainTab) {
+            document.body.classList.remove('bottom-nav-hidden');
+        } else {
+            document.body.classList.add('bottom-nav-hidden');
+        }
+    };
+    
     // Toggle FAB visibility based on the SPA route hash
     const updateFabVisibility = () => {
         const hash = window.location.hash || '#/';
-        const isHome = hash === '#/' || hash === '#' || hash === '';
         const isDetails = hash.startsWith('#/project/') && !hash.endsWith('/edit') && !hash.includes('/payment/') && !hash.includes('/expense/');
         
-        if (isHome || isDetails) {
+        if (isDetails) {
             fab.classList.remove('fab-hidden');
         } else {
             fab.classList.add('fab-hidden');
         }
     };
     
-    window.addEventListener('hashchange', updateFabVisibility);
+    window.addEventListener('hashchange', () => {
+        updateBottomNav();
+        updateFabVisibility();
+    });
     window.addEventListener('hashchange', closeSheet); // Auto-close sheet on route change
+    
+    updateBottomNav();
     updateFabVisibility();
 
     // Sheet toggles
