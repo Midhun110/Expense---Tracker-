@@ -9,7 +9,7 @@ import { ExpenseAddView } from './js/views/expense-add.js';
 import { ExpenseEditView } from './js/views/expense-edit.js';
 import { ProjectsListView } from './js/views/projects-list.js';
 import { ReportsView } from './js/views/reports.js';
-import { MoreView } from './js/views/more.js';
+import { ProfileView } from './js/views/profile.js';
 import { getProjects } from './js/state.js';
 
 // Define the application routes map
@@ -17,7 +17,7 @@ const routes = {
     '/': DashboardView,
     '/projects': ProjectsListView,
     '/reports': ReportsView,
-    '/more': MoreView,
+    '/profile': ProfileView,
     '/add': ProjectAddView,
     '/project/:id': ProjectDetailsView,
     '/project/:id/edit': ProjectEditView,
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '#/': document.getElementById('nav-home'),
             '#/projects': document.getElementById('nav-projects'),
             '#/reports': document.getElementById('nav-reports'),
-            '#/more': document.getElementById('nav-more')
+            '#/profile': document.getElementById('nav-profile')
         };
         
         Object.values(navItems).forEach(el => {
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navItems[basePath].classList.add('active');
         }
         
-        const isMainTab = basePath === '#/' || basePath === '#' || basePath === '' || basePath === '#/projects' || basePath === '#/reports' || basePath === '#/more';
+        const isMainTab = basePath === '#/' || basePath === '#' || basePath === '' || basePath === '#/projects' || basePath === '#/reports' || basePath === '#/profile';
         
         if (isMainTab) {
             document.body.classList.remove('bottom-nav-hidden');

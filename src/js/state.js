@@ -391,3 +391,42 @@ function saveProjects(projects) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
 }
 
+// Business Profile State Management
+const PROFILE_STORAGE_KEY = 'easy_business_profile';
+
+const DEFAULT_PROFILE = {
+    companyName: 'Nikhil Wood Industries',
+    tagline: 'Premium Carpentry and Interior Works',
+    phone: '9947263836',
+    email: 'jayaprakashjp404@gmail.com',
+    address: 'Mylaadumkunn, Venga P.O., Sasthamcotta - 690521'
+};
+
+export function getBusinessProfile() {
+    const data = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!data) {
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILE));
+        return { ...DEFAULT_PROFILE };
+    }
+    try {
+        return JSON.parse(data);
+    } catch (e) {
+        return { ...DEFAULT_PROFILE };
+    }
+}
+
+export function updateBusinessProfile(updatedData) {
+    const current = getBusinessProfile();
+    const newProfile = {
+        ...current,
+        companyName: (updatedData.companyName || '').trim(),
+        tagline: (updatedData.tagline || '').trim(),
+        phone: (updatedData.phone || '').trim(),
+        email: (updatedData.email || '').trim(),
+        address: (updatedData.address || '').trim()
+    };
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(newProfile));
+    return newProfile;
+}
+
+
