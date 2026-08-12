@@ -151,6 +151,12 @@ export function getProjects() {
             }
             updated = true;
         }
+        if (p.discount === undefined || p.discount === null || isNaN(parseFloat(p.discount))) {
+            p.discount = 0;
+            updated = true;
+        } else {
+            p.discount = parseFloat(p.discount);
+        }
     });
     if (updated) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
@@ -187,6 +193,7 @@ export function addProject(projectData) {
         phone: (projectData.phone || '').trim(),
         siteAddress: (projectData.siteAddress || '').trim(),
         amount: totalAmount,
+        discount: parseFloat(projectData.discount) || 0,
         startDate: projectData.startDate || new Date().toISOString().split('T')[0],
         expectedCompletionDate: projectData.expectedCompletionDate || '',
         products: products,
@@ -226,6 +233,7 @@ export function updateProject(id, updatedData) {
         phone: (updatedData.phone || '').trim(),
         siteAddress: (updatedData.siteAddress || '').trim(),
         amount: totalAmount,
+        discount: parseFloat(updatedData.discount) || 0,
         startDate: updatedData.startDate || projects[index].startDate,
         expectedCompletionDate: updatedData.expectedCompletionDate || '',
         products: products,

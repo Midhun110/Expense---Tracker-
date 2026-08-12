@@ -142,12 +142,17 @@ export const ProjectDetailsView = {
             `).join('');
         }
 
+        // Calculate discount, final contract amount, and remaining amount
+        const discount = parseFloat(project.discount) || 0;
+        const originalContractAmount = project.amount || 0;
+        const finalContractAmount = Math.max(0, originalContractAmount - discount);
+        const remainingToReceive = Math.max(0, finalContractAmount - totalReceived);
+
         // Calculate total expenses and group by date
         const expenses = [...(project.expenses || [])];
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
         const ownPocket = Math.max(0, totalExpenses - totalReceived);
-        const remainingToReceive = Math.max(0, project.amount - totalReceived);
 
         const expensesByDate = {};
         expenses.forEach(exp => {
@@ -307,39 +312,55 @@ export const ProjectDetailsView = {
                 <!-- Money Summary Board -->
                 <div style="margin-bottom: 32px;">
                     <h2 class="mb-4">Money Board</h2>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
-                        <!-- Contract Price -->
-                        <div style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-soft);">
-                            <div style="font-size: 14px; color: var(--text-secondary); font-weight: 600;">Contract Price</div>
-                            <div style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">${formatPrice(project.amount)}</div>
+
+                    <!-- Payment Summary Card -->
+                    <div style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Original Contract Amount -->
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 17px; font-weight: 600; color: var(--text-secondary);">Original Contract Amount</span>
+                            <span style="font-size: 22px; font-weight: 700; color: var(--text-primary);">${formatPrice(originalContractAmount)}</span>
                         </div>
-                        
-                        <!-- Total Received -->
-                        <div style="background-color: var(--color-running-bg); border: 2px solid rgba(17, 120, 100, 0.2); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-soft);">
-                            <div style="font-size: 14px; color: var(--color-running-text); font-weight: 600;">Total Received</div>
-                            <div style="font-size: 22px; font-weight: 700; color: var(--color-running-text); margin-top: 4px;">${formatPrice(totalReceived)}</div>
+
+                        ${discount > 0 ? `
+                        <!-- Discount row (hidden if 0) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                            <span style="font-size: 17px; font-weight: 600; color: var(--color-danger-text);">Discount</span>
+                            <span style="font-size: 22px; font-weight: 700; color: var(--color-danger-text);">- ${formatPrice(discount)}</span>
+                        </div>` : ''}
+
+                        <!-- Final Contract Amount -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed var(--border-color); padding-top: 10px;">
+                            <span style="font-size: 17px; font-weight: 700; color: var(--text-primary);">Final Contract Amount</span>
+                            <span style="font-size: 24px; font-weight: 800; color: var(--color-primary);">${formatPrice(finalContractAmount)}</span>
+                        </div>
+
+                        <!-- Amount Received -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                            <span style="font-size: 17px; font-weight: 600; color: var(--color-running-text);">Amount Received</span>
+                            <span style="font-size: 22px; font-weight: 700; color: var(--color-running-text);">${formatPrice(totalReceived)}</span>
                         </div>
                     </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+
+                    <!-- Remaining Amount Highlight -->
+                    <div style="background-color: #EBF5FB; border: 2px solid #5DADE2; border-radius: 14px; padding: 22px; box-shadow: var(--shadow-soft); text-align: center;">
+                        <div style="font-size: 16px; color: #2980B9; font-weight: 700; margin-bottom: 6px;">Remaining Amount</div>
+                        <div style="font-size: 36px; font-weight: 800; color: #1B4F72;">${formatPrice(remainingToReceive)}</div>
+                        <div style="font-size: 14px; color: #2980B9; margin-top: 6px; font-weight: 500;">Still to be collected from client</div>
+                    </div>
+
+                    <!-- Expenses Row -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px;">
                         <!-- Total Expenses -->
                         <div style="background-color: var(--color-danger-bg); border: 2px solid rgba(192, 57, 43, 0.2); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-soft);">
                             <div style="font-size: 14px; color: var(--color-danger-text); font-weight: 600;">Total Expenses</div>
                             <div style="font-size: 22px; font-weight: 700; color: var(--color-danger-text); margin-top: 4px;">${formatPrice(totalExpenses)}</div>
                         </div>
-                        
+
                         <!-- Paid from Own Pocket -->
                         <div style="background-color: ${ownPocket > 0 ? 'var(--color-danger-bg)' : 'var(--bg-card)'}; border: 2px solid ${ownPocket > 0 ? 'var(--color-danger-text)' : 'var(--border-color)'}; border-radius: 12px; padding: 16px; box-shadow: var(--shadow-soft);">
                             <div style="font-size: 14px; color: ${ownPocket > 0 ? 'var(--color-danger-text)' : 'var(--text-secondary)'}; font-weight: 600;">Paid from Pocket</div>
                             <div style="font-size: 22px; font-weight: 700; color: ${ownPocket > 0 ? 'var(--color-danger-text)' : 'var(--text-primary)'}; margin-top: 4px;">${formatPrice(ownPocket)}</div>
                         </div>
-                    </div>
-                    
-                    <!-- Remaining to Receive -->
-                    <div style="background-color: #EBF5FB; border: 2px solid #5DADE2; border-radius: 12px; padding: 20px; box-shadow: var(--shadow-soft); text-align: center;">
-                        <div style="font-size: 16px; color: #2980B9; font-weight: 700;">Remaining to Receive</div>
-                        <div style="font-size: 30px; font-weight: 800; color: #1B4F72; margin-top: 4px;">${formatPrice(remainingToReceive)}</div>
                     </div>
                 </div>
                 
@@ -655,30 +676,134 @@ export const ProjectDetailsView = {
                         margin: { left: 15, right: 15 }
                     });
 
-                    // 4. Total Contract Amount Section (Inline below table)
+                    // 4. Financial Summary Section below table
                     const finalY = doc.lastAutoTable.finalY;
-                    let textY = finalY + 11;
+                    let textY = finalY + 12;
+
+                    // Calculate discount-aware amounts for PDF
+                    const pdfDiscount = parseFloat(project.discount) || 0;
+                    const pdfOriginalAmount = project.amount || 0;
+                    const pdfFinalAmount = Math.max(0, pdfOriginalAmount - pdfDiscount);
+                    const pdfTotalReceived = (project.payments || []).reduce((sum, p) => sum + p.amount, 0);
+                    const pdfRemaining = Math.max(0, pdfFinalAmount - pdfTotalReceived);
+
+                    // Estimate height needed for the summary block
+                    // No discount: 3 rows. With discount: 4 rows.
+                    const summaryRowCount = pdfDiscount > 0 ? 4 : 3;
+                    const summaryHeight = 12 + (summaryRowCount * 9);
 
                     // Check if it fits on page, if not, add page
-                    if (textY + 5 > 275) {
+                    if (textY + summaryHeight > 270) {
                         doc.addPage();
                         textY = 25;
                     }
 
-                    // Draw a straight horizontal line under the table (15mm to 195mm)
+                    const boxStartX = 115;
+                    const boxEndX = 195;
+
+                    // Top accent border for summary block
                     doc.setDrawColor(211, 84, 0);
-                    doc.setLineWidth(0.5);
-                    doc.line(15, textY - 6, 195, textY - 6);
+                    doc.setLineWidth(0.6);
+                    doc.line(boxStartX, textY - 6, boxEndX, textY - 6);
 
-                    doc.setTextColor(85, 85, 85);
-                    doc.setFontSize(9.5);
-                    doc.setFont('Helvetica', 'bold');
-                    doc.text('Total Contract Amount', 140, textY);
+                    // Helper for drawing a summary row
+                    const drawSummaryRow = (label, valueStr, y, labelBold = false, valueBold = false, labelColor = [85, 85, 85], valueColor = [85, 85, 85]) => {
+                        doc.setTextColor(...labelColor);
+                        doc.setFont('Helvetica', labelBold ? 'bold' : 'normal');
+                        doc.setFontSize(10);
+                        doc.text(label, boxStartX, y);
 
-                    doc.setTextColor(211, 84, 0);
-                    doc.setFontSize(11);
-                    doc.setFont('Helvetica', 'bold');
-                    doc.text('Rs. ' + Number(project.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 }), 195, textY, { align: 'right' });
+                        doc.setTextColor(...valueColor);
+                        doc.setFont('Helvetica', valueBold ? 'bold' : 'normal');
+                        doc.setFontSize(valueBold ? 11 : 10);
+                        doc.text(valueStr, boxEndX, y, { align: 'right' });
+                    };
+
+                    if (pdfDiscount > 0) {
+                        // 1. Final Contract Amount
+                        drawSummaryRow(
+                            'Final Contract Amount',
+                            'Rs. ' + Number(pdfFinalAmount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, true, true, [211, 84, 0], [211, 84, 0]
+                        );
+                        textY += 9;
+
+                        // Light separator
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.25);
+                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+
+                        // 2. Discount
+                        drawSummaryRow(
+                            'Discount',
+                            'Rs. ' + Number(pdfDiscount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, false, false, [192, 57, 43], [192, 57, 43]
+                        );
+                        textY += 9;
+
+                        // Light separator
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.25);
+                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+
+                        // 3. Amount Received
+                        drawSummaryRow(
+                            'Amount Received',
+                            'Rs. ' + Number(pdfTotalReceived).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, false, false, [39, 174, 96], [39, 174, 96]
+                        );
+                        textY += 9;
+
+                        // Light separator
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.25);
+                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+
+                        // 4. Remaining Amount
+                        drawSummaryRow(
+                            'Remaining Amount',
+                            'Rs. ' + Number(pdfRemaining).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, true, true, [27, 79, 114], [27, 79, 114]
+                        );
+                    } else {
+                        // 1. Final Contract Amount
+                        drawSummaryRow(
+                            'Final Contract Amount',
+                            'Rs. ' + Number(pdfFinalAmount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, true, true, [211, 84, 0], [211, 84, 0]
+                        );
+                        textY += 9;
+
+                        // Light separator
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.25);
+                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+
+                        // 2. Amount Received
+                        drawSummaryRow(
+                            'Amount Received',
+                            'Rs. ' + Number(pdfTotalReceived).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, false, false, [39, 174, 96], [39, 174, 96]
+                        );
+                        textY += 9;
+
+                        // Light separator
+                        doc.setDrawColor(226, 232, 240);
+                        doc.setLineWidth(0.25);
+                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+
+                        // 3. Remaining Amount
+                        drawSummaryRow(
+                            'Remaining Amount',
+                            'Rs. ' + Number(pdfRemaining).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                            textY, true, true, [27, 79, 114], [27, 79, 114]
+                        );
+                    }
+
+                    // Bottom border under summary
+                    doc.setDrawColor(211, 84, 0);
+                    doc.setLineWidth(0.6);
+                    doc.line(boxStartX, textY + 5, boxEndX, textY + 5);
 
                     // 5. Footer (drawn at bottom of all pages)
                     const pageCount = doc.internal.getNumberOfPages();

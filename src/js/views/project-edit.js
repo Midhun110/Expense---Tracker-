@@ -159,10 +159,26 @@ export const ProjectEditView = {
                         </button>
                     </div>
 
-                    <!-- Total Contract Amount Box -->
-                    <div class="total-amount-box">
-                        <span class="total-amount-label">Total Contract Amount:</span>
-                        <span class="total-amount-value" id="total-contract-amount">₹0</span>
+                    <!-- Discount (Optional) -->
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label class="form-label" for="proj-discount">Discount (Optional)</label>
+                        <input type="number" id="proj-discount" class="form-control" value="${project.discount || ''}" placeholder="₹ Enter discount amount" min="0" inputmode="numeric" pattern="[0-9]*">
+                    </div>
+
+                    <!-- Contract Amount Summary Box -->
+                    <div class="total-amount-box" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 20px;">
+                        <div style="display: none; justify-content: space-between; align-items: center;" id="original-amount-row">
+                            <span style="font-size: 16px; font-weight: 600; color: var(--text-secondary);">Total Product Amount:</span>
+                            <span style="font-size: 20px; font-weight: 700; color: var(--text-secondary);" id="original-contract-amount">₹0</span>
+                        </div>
+                        <div style="display: none; justify-content: space-between; align-items: center;" id="discount-summary-row">
+                            <span style="font-size: 16px; font-weight: 600; color: var(--color-danger-text);">Discount:</span>
+                            <span style="font-size: 20px; font-weight: 700; color: var(--color-danger-text);" id="discount-summary-val">₹0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: none; padding-top: 10px;" id="final-amount-divider">
+                            <span class="total-amount-label">Final Contract Amount:</span>
+                            <span class="total-amount-value" id="final-contract-amount">₹0</span>
+                        </div>
                     </div>
                     
                     <!-- Status Toggle -->
@@ -217,6 +233,7 @@ export const ProjectEditView = {
         const headerCancelBtn = document.getElementById('btn-cancel-edit');
         const productRowsContainer = document.getElementById('product-rows-container');
         const addProductRowBtn = document.getElementById('btn-add-product-row');
+        const discountInput = document.getElementById('proj-discount');
         
         cancelBtn.addEventListener('click', goBack);
         headerCancelBtn.addEventListener('click', goBack);
@@ -224,7 +241,7 @@ export const ProjectEditView = {
         // Helper to recalculate indices and total contract amount
         const updateSerialNumbersAndTotal = () => {
             const rows = productRowsContainer.getElementsByClassName('product-row');
-            let total = 0;
+            let originalTotal = 0;
             
             Array.from(rows).forEach((row, idx) => {
                 const noSpan = row.querySelector('.product-no');
@@ -236,14 +253,34 @@ export const ProjectEditView = {
                 
                 const price = parseFloat(priceInput.value) || 0;
                 const qty = parseInt(qtyInput.value) || 1;
-                total += price * qty;
+                originalTotal += price * qty;
             });
+
+            const discountVal = parseFloat(discountInput ? discountInput.value : 0) || 0;
+            const finalTotal = Math.max(0, originalTotal - discountVal);
+            const hasDiscount = discountVal > 0;
+
+            // Show/hide the original & discount rows — only visible when a discount is entered
+            const origRow = document.getElementById('original-amount-row');
+            const discRow = document.getElementById('discount-summary-row');
+            const divider = document.getElementById('final-amount-divider');
+
+            if (origRow) origRow.style.display = hasDiscount ? 'flex' : 'none';
+            if (discRow) discRow.style.display = hasDiscount ? 'flex' : 'none';
+            if (divider) divider.style.borderTop = hasDiscount ? '2px dashed var(--border-color)' : 'none';
+
+            const origElem = document.getElementById('original-contract-amount');
+            const discElem = document.getElementById('discount-summary-val');
+            const finalElem = document.getElementById('final-contract-amount');
             
-            const totalVal = document.getElementById('total-contract-amount');
-            if (totalVal) {
-                totalVal.textContent = '₹' + total.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-            }
+            if (origElem) origElem.textContent = '₹' + originalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            if (discElem) discElem.textContent = '₹' + discountVal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            if (finalElem) finalElem.textContent = '₹' + finalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         };
+
+        if (discountInput) {
+            discountInput.addEventListener('input', updateSerialNumbersAndTotal);
+        }
 
         // Bind events for quantity controls and deletion in a row
         const bindRowEvents = (row) => {
@@ -459,6 +496,7 @@ export const ProjectEditView = {
             }
 
             const productsData = [];
+            let originalTotalAmount = 0;
             Array.from(rows).forEach((row, idx) => {
                 const itemName = row.querySelector('.item-name').value.trim();
                 const qty = parseInt(row.querySelector('.item-qty').value) || 1;
@@ -473,14 +511,26 @@ export const ProjectEditView = {
                     errors.push(`Item #${idx + 1}: Please enter a valid Price (0 or more).`);
                 }
 
+                const itemPrice = price || 0;
+                originalTotalAmount += itemPrice * qty;
+
                 productsData.push({
                     no: idx + 1,
                     itemName,
                     quantity: qty,
                     size,
-                    price: price || 0
+                    price: itemPrice
                 });
             });
+
+            const discountRaw = document.getElementById('proj-discount').value.trim();
+            const discountVal = discountRaw === '' ? 0 : parseFloat(discountRaw);
+
+            if (discountRaw !== '' && (isNaN(discountVal) || discountVal < 0)) {
+                errors.push('Discount cannot be a negative amount.');
+            } else if (discountVal > originalTotalAmount) {
+                errors.push('Discount cannot be greater than the contract amount.');
+            }
             
             if (errors.length > 0) {
                 errorBox.innerHTML = errors.map(err => `<div>• ${err}</div>`).join('');
@@ -497,6 +547,7 @@ export const ProjectEditView = {
                 siteAddress,
                 startDate,
                 expectedCompletionDate,
+                discount: discountVal,
                 products: productsData,
                 status
             });

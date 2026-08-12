@@ -15,7 +15,9 @@ export const ReportsView = {
         const categoryMap = {};
         
         projects.forEach(p => {
-            totalRevenue += p.amount;
+            const pDiscount = parseFloat(p.discount) || 0;
+            const pFinalAmount = Math.max(0, (p.amount || 0) - pDiscount);
+            totalRevenue += pFinalAmount;
             
             (p.payments || []).forEach(pay => {
                 totalReceived += pay.amount;

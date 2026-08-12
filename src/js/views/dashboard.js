@@ -56,7 +56,9 @@ export const DashboardView = {
             if (p.status === 'Running') {
                 activeProjectsCount++;
                 const received = (p.payments || []).reduce((sum, pay) => sum + pay.amount, 0);
-                const remaining = Math.max(0, p.amount - received);
+                const pDiscount = parseFloat(p.discount) || 0;
+                const pFinalAmount = Math.max(0, (p.amount || 0) - pDiscount);
+                const remaining = Math.max(0, pFinalAmount - received);
                 pendingCollection += remaining;
             }
         });
@@ -174,7 +176,9 @@ export const DashboardView = {
             let html = projectsToShow.map(proj => {
                 const payments = proj.payments || [];
                 const received = payments.reduce((sum, p) => sum + p.amount, 0);
-                const remaining = Math.max(0, proj.amount - received);
+                const projDiscount = parseFloat(proj.discount) || 0;
+                const projFinalAmount = Math.max(0, (proj.amount || 0) - projDiscount);
+                const remaining = Math.max(0, projFinalAmount - received);
                 
                 return `
                     <div class="project-card-large" style="background-color: #FFFFFF; border: 2px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 16px;">
