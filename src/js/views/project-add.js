@@ -141,7 +141,7 @@ export const ProjectAddView = {
                     <!-- Contract Amount Summary Box -->
                     <div class="total-amount-box" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 20px;">
                         <div style="display: none; justify-content: space-between; align-items: center;" id="original-amount-row">
-                            <span style="font-size: 16px; font-weight: 600; color: var(--text-secondary);">Total Product Amount:</span>
+                            <span style="font-size: 16px; font-weight: 600; color: var(--text-secondary);">Final Contract Amount:</span>
                             <span style="font-size: 20px; font-weight: 700; color: var(--text-secondary);" id="original-contract-amount">₹0</span>
                         </div>
                         <div style="display: none; justify-content: space-between; align-items: center;" id="discount-summary-row">
@@ -149,7 +149,7 @@ export const ProjectAddView = {
                             <span style="font-size: 20px; font-weight: 700; color: var(--color-danger-text);" id="discount-summary-val">₹0</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: none; padding-top: 10px;" id="final-amount-divider">
-                            <span class="total-amount-label">Final Contract Amount:</span>
+                            <span class="total-amount-label" id="final-amount-label">Final Contract Amount:</span>
                             <span class="total-amount-value" id="final-contract-amount">₹0</span>
                         </div>
                     </div>
@@ -223,13 +223,14 @@ export const ProjectAddView = {
             });
 
             const discountVal = parseFloat(discountInput.value) || 0;
-            const finalTotal = Math.max(0, originalTotal - discountVal);
+            const remainingTotal = Math.max(0, originalTotal - discountVal);
             const hasDiscount = discountVal > 0;
 
             // Show/hide the original & discount rows — only visible when a discount is entered
             const origRow = document.getElementById('original-amount-row');
             const discRow = document.getElementById('discount-summary-row');
             const divider = document.getElementById('final-amount-divider');
+            const finalLabel = document.getElementById('final-amount-label');
 
             if (origRow) origRow.style.display = hasDiscount ? 'flex' : 'none';
             if (discRow) discRow.style.display = hasDiscount ? 'flex' : 'none';
@@ -241,8 +242,9 @@ export const ProjectAddView = {
             const finalElem = document.getElementById('final-contract-amount');
 
             if (origElem) origElem.textContent = '₹' + originalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-            if (discElem) discElem.textContent = '₹' + discountVal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-            if (finalElem) finalElem.textContent = '₹' + finalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            if (discElem) discElem.textContent = (hasDiscount ? '- ' : '') + '₹' + discountVal.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            if (finalElem) finalElem.textContent = '₹' + (hasDiscount ? remainingTotal : originalTotal).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+            if (finalLabel) finalLabel.textContent = hasDiscount ? 'Remaining Amount:' : 'Final Contract Amount:';
         };
 
         if (discountInput) {

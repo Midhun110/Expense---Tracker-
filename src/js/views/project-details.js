@@ -142,11 +142,14 @@ export const ProjectDetailsView = {
             `).join('');
         }
 
-        // Calculate discount, final contract amount, and remaining amount
+        // Calculate dynamically:
+        // 1. Final Contract Amount = Original contract amount before discount
+        // 2. Discount = Discount entered by the user
+        // 3. Amount Received = Total payments received from the customer
+        // 4. Remaining Amount = Final Contract Amount - Discount - Amount Received
+        const finalContractAmount = project.amount || 0;
         const discount = parseFloat(project.discount) || 0;
-        const originalContractAmount = project.amount || 0;
-        const finalContractAmount = Math.max(0, originalContractAmount - discount);
-        const remainingToReceive = Math.max(0, finalContractAmount - totalReceived);
+        const remainingToReceive = Math.max(0, finalContractAmount - discount - totalReceived);
 
         // Calculate total expenses and group by date
         const expenses = [...(project.expenses || [])];
@@ -315,33 +318,26 @@ export const ProjectDetailsView = {
 
                     <!-- Payment Summary Card -->
                     <div style="background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 14px;">
-                        <!-- Original Contract Amount -->
+                        <!-- 1. Final Contract Amount (Original contract amount before discount) -->
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 17px; font-weight: 600; color: var(--text-secondary);">Original Contract Amount</span>
-                            <span style="font-size: 22px; font-weight: 700; color: var(--text-primary);">${formatPrice(originalContractAmount)}</span>
-                        </div>
-
-                        ${discount > 0 ? `
-                        <!-- Discount row (hidden if 0) -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                            <span style="font-size: 17px; font-weight: 600; color: var(--color-danger-text);">Discount</span>
-                            <span style="font-size: 22px; font-weight: 700; color: var(--color-danger-text);">- ${formatPrice(discount)}</span>
-                        </div>` : ''}
-
-                        <!-- Final Contract Amount -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed var(--border-color); padding-top: 10px;">
                             <span style="font-size: 17px; font-weight: 700; color: var(--text-primary);">Final Contract Amount</span>
                             <span style="font-size: 24px; font-weight: 800; color: var(--color-primary);">${formatPrice(finalContractAmount)}</span>
                         </div>
 
-                        <!-- Amount Received -->
+                        <!-- 2. Discount (Discount entered by user) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                            <span style="font-size: 17px; font-weight: 600; color: var(--color-danger-text);">Discount</span>
+                            <span style="font-size: 22px; font-weight: 700; color: var(--color-danger-text);">${discount > 0 ? '- ' : ''}${formatPrice(discount)}</span>
+                        </div>
+
+                        <!-- 3. Amount Received (Total payments received from customer) -->
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
                             <span style="font-size: 17px; font-weight: 600; color: var(--color-running-text);">Amount Received</span>
                             <span style="font-size: 22px; font-weight: 700; color: var(--color-running-text);">${formatPrice(totalReceived)}</span>
                         </div>
                     </div>
 
-                    <!-- Remaining Amount Highlight -->
+                    <!-- 4. Remaining Amount = Final Contract Amount - Discount - Amount Received -->
                     <div style="background-color: #EBF5FB; border: 2px solid #5DADE2; border-radius: 14px; padding: 22px; box-shadow: var(--shadow-soft); text-align: center;">
                         <div style="font-size: 16px; color: #2980B9; font-weight: 700; margin-bottom: 6px;">Remaining Amount</div>
                         <div style="font-size: 36px; font-weight: 800; color: #1B4F72;">${formatPrice(remainingToReceive)}</div>
@@ -676,20 +672,22 @@ export const ProjectDetailsView = {
                         margin: { left: 15, right: 15 }
                     });
 
-                    // 4. Financial Summary Section below table
+                    // 4. Financial Summary Section below table (Dynamically calculated)
                     const finalY = doc.lastAutoTable.finalY;
                     let textY = finalY + 12;
 
-                    // Calculate discount-aware amounts for PDF
-                    const pdfDiscount = parseFloat(project.discount) || 0;
-                    const pdfOriginalAmount = project.amount || 0;
-                    const pdfFinalAmount = Math.max(0, pdfOriginalAmount - pdfDiscount);
-                    const pdfTotalReceived = (project.payments || []).reduce((sum, p) => sum + p.amount, 0);
-                    const pdfRemaining = Math.max(0, pdfFinalAmount - pdfTotalReceived);
+                    // 1. Final Contract Amount = Original contract amount before discount
+                    // 2. Discount = Discount entered by the user
+                    // 3. Amount Received = Total payments received from the customer
+                    // 4. Remaining Amount = Final Contract Amount - Discount - Amount Received
+                    const currentProj = getProject(project.id) || project;
+                    const pdfFinalContractAmount = currentProj.amount || 0;
+                    const pdfDiscount = parseFloat(currentProj.discount) || 0;
+                    const pdfTotalReceived = (currentProj.payments || []).reduce((sum, p) => sum + p.amount, 0);
+                    const pdfRemaining = Math.max(0, pdfFinalContractAmount - pdfDiscount - pdfTotalReceived);
 
-                    // Estimate height needed for the summary block
-                    // No discount: 3 rows. With discount: 4 rows.
-                    const summaryRowCount = pdfDiscount > 0 ? 4 : 3;
+                    // Estimate height needed for the 4-row summary block
+                    const summaryRowCount = 4;
                     const summaryHeight = 12 + (summaryRowCount * 9);
 
                     // Check if it fits on page, if not, add page
@@ -719,86 +717,51 @@ export const ProjectDetailsView = {
                         doc.text(valueStr, boxEndX, y, { align: 'right' });
                     };
 
-                    if (pdfDiscount > 0) {
-                        // 1. Final Contract Amount
-                        drawSummaryRow(
-                            'Final Contract Amount',
-                            'Rs. ' + Number(pdfFinalAmount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, true, true, [211, 84, 0], [211, 84, 0]
-                        );
-                        textY += 9;
+                    // 1. Final Contract Amount = Original contract amount before discount
+                    drawSummaryRow(
+                        'Final Contract Amount',
+                        'Rs. ' + Number(pdfFinalContractAmount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                        textY, true, true, [211, 84, 0], [211, 84, 0]
+                    );
+                    textY += 9;
 
-                        // Light separator
-                        doc.setDrawColor(226, 232, 240);
-                        doc.setLineWidth(0.25);
-                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+                    // Light separator
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.25);
+                    doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
 
-                        // 2. Discount
-                        drawSummaryRow(
-                            'Discount',
-                            'Rs. ' + Number(pdfDiscount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, false, false, [192, 57, 43], [192, 57, 43]
-                        );
-                        textY += 9;
+                    // 2. Discount = Discount entered by user
+                    drawSummaryRow(
+                        'Discount',
+                        'Rs. ' + Number(pdfDiscount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                        textY, false, false, [192, 57, 43], [192, 57, 43]
+                    );
+                    textY += 9;
 
-                        // Light separator
-                        doc.setDrawColor(226, 232, 240);
-                        doc.setLineWidth(0.25);
-                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+                    // Light separator
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.25);
+                    doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
 
-                        // 3. Amount Received
-                        drawSummaryRow(
-                            'Amount Received',
-                            'Rs. ' + Number(pdfTotalReceived).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, false, false, [39, 174, 96], [39, 174, 96]
-                        );
-                        textY += 9;
+                    // 3. Amount Received = Total payments received from customer
+                    drawSummaryRow(
+                        'Amount Received',
+                        'Rs. ' + Number(pdfTotalReceived).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                        textY, false, false, [39, 174, 96], [39, 174, 96]
+                    );
+                    textY += 9;
 
-                        // Light separator
-                        doc.setDrawColor(226, 232, 240);
-                        doc.setLineWidth(0.25);
-                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
+                    // Light separator
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.25);
+                    doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
 
-                        // 4. Remaining Amount
-                        drawSummaryRow(
-                            'Remaining Amount',
-                            'Rs. ' + Number(pdfRemaining).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, true, true, [27, 79, 114], [27, 79, 114]
-                        );
-                    } else {
-                        // 1. Final Contract Amount
-                        drawSummaryRow(
-                            'Final Contract Amount',
-                            'Rs. ' + Number(pdfFinalAmount).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, true, true, [211, 84, 0], [211, 84, 0]
-                        );
-                        textY += 9;
-
-                        // Light separator
-                        doc.setDrawColor(226, 232, 240);
-                        doc.setLineWidth(0.25);
-                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
-
-                        // 2. Amount Received
-                        drawSummaryRow(
-                            'Amount Received',
-                            'Rs. ' + Number(pdfTotalReceived).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, false, false, [39, 174, 96], [39, 174, 96]
-                        );
-                        textY += 9;
-
-                        // Light separator
-                        doc.setDrawColor(226, 232, 240);
-                        doc.setLineWidth(0.25);
-                        doc.line(boxStartX, textY - 4.5, boxEndX, textY - 4.5);
-
-                        // 3. Remaining Amount
-                        drawSummaryRow(
-                            'Remaining Amount',
-                            'Rs. ' + Number(pdfRemaining).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
-                            textY, true, true, [27, 79, 114], [27, 79, 114]
-                        );
-                    }
+                    // 4. Remaining Amount = Final Contract Amount - Discount - Amount Received
+                    drawSummaryRow(
+                        'Remaining Amount',
+                        'Rs. ' + Number(pdfRemaining).toLocaleString('en-IN', { maximumFractionDigits: 0 }),
+                        textY, true, true, [27, 79, 114], [27, 79, 114]
+                    );
 
                     // Bottom border under summary
                     doc.setDrawColor(211, 84, 0);

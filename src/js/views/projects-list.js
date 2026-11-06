@@ -81,9 +81,9 @@ export const ProjectsListView = {
             container.innerHTML = filtered.map(proj => {
                 const payments = proj.payments || [];
                 const received = payments.reduce((sum, pay) => sum + pay.amount, 0);
+                const finalContractAmount = proj.amount || 0;
                 const projDiscount = parseFloat(proj.discount) || 0;
-                const projFinalAmount = Math.max(0, (proj.amount || 0) - projDiscount);
-                const remaining = Math.max(0, projFinalAmount - received);
+                const remaining = Math.max(0, finalContractAmount - projDiscount - received);
                 
                 return `
                     <div class="project-card-large" style="background-color: #FFFFFF; border: 2px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 16px;">
